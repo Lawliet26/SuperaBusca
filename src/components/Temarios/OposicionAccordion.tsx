@@ -18,7 +18,9 @@ export const OposicionAccordion = ({ oposiciones }: OposicionAccordionProps) => 
   };
   return (
       <div className="temarios-accordion">
-        {oposiciones.map((oposicion, index) => {
+        {Array.isArray(oposiciones) &&
+            oposiciones.length > 0 &&
+            oposiciones.map((oposicion, index) => {
           const isOpen = openId === oposicion.id_oposicion;
 
           return (

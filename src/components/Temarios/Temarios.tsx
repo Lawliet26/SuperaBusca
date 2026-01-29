@@ -19,7 +19,6 @@ export const Temarios = () => {
       try {
         setLoading(true);
         const data = await temariosService.getMisTemarios(user);
-        console.log(data)
         setOposiciones(data);
       } catch (error) {
         toast({
@@ -70,7 +69,7 @@ export const Temarios = () => {
           </motion.p>
         </div>
         
-        {oposiciones.length === 0 ? (
+        {Array.isArray(oposiciones) && oposiciones.length === 0 ? (
           <div className="temarios-empty">
             <p className="temarios-empty-text">No hay temarios disponibles</p>
           </div>
