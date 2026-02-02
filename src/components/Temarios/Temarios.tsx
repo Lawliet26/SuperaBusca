@@ -59,7 +59,7 @@ export const Temarios = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
           >
-            Mis Temarios
+            Mis Convocatorias
           </motion.h1>
           <motion.p 
             className="temarios-subtitle"
@@ -67,13 +67,13 @@ export const Temarios = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
           >
-            Revisa y evalúa los temarios de las oposiciones
+            Revisa y evalúa los temarios de las convocatorias
           </motion.p>
         </div>
         
         {Array.isArray(oposiciones) && oposiciones.length === 0 ? (
           <div className="temarios-empty">
-            <p className="temarios-empty-text">No hay temarios disponibles</p>
+            <p className="temarios-empty-text">No hay convocatorias disponibles</p>
           </div>
         ) : (
           <OposicionAccordion oposiciones={oposiciones} />

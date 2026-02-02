@@ -24,7 +24,7 @@ const Dashboard: React.FC = () => {
         return <Revisiones />;
       case 'correcciones':
         return <Correcciones />;
-      case 'mistemarios':
+      case 'misconvocatorias':
         return <Temarios />;
       default:
         return <Oposiciones />;

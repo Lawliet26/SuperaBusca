@@ -27,7 +27,7 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
     { key: 'oposiciones', label: 'Oposiciones', icon: <BookOutlined />, visible: true },
     { key: 'revisiones', label: 'Revisiones', icon: <FileSearchOutlined />, visible: isProfesor },
     { key: 'correcciones', label: 'Correcciones', icon: <EditOutlined />, visible: isProfesor },
-    { key: 'mistemarios', label: 'Mis Temarios', icon: <SnippetsOutlined />, visible: true },
+    { key: 'misconvocatorias', label: 'Mis Convocatorias', icon: <SnippetsOutlined />, visible: true },
 
   ].filter(item => item.visible);
 
