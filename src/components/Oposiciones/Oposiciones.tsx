@@ -1,86 +1,139 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Select, Input, Empty, message, Row, Col, Spin } from 'antd';
+import { Select, Input, Empty, message, Row, Col, Spin, Pagination, Card, Tag, Button } from 'antd';
 import { SearchOutlined, FilterOutlined } from '@ant-design/icons';
 import { oposicionesService } from '../../services/oposicionesService';
+import { provinciasService, Provincia } from '../../services/provinciasService';
+import { categoriasService, Categoria } from '../../services/categoriasService';
 import { useAuth } from '../../context/AuthContext';
 import { Oposicion } from '../../types';
 import OposicionCard from './OposicionCard';
 import './Oposiciones.css';
 
+const { Option } = Select;
+
+const TIPOS_OPOSICION = ['Convocatoria', 'Oferta'];
+
 const Oposiciones: React.FC = () => {
   const { user } = useAuth();
   const [oposiciones, setOposiciones] = useState<Oposicion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categoriaFilter, setCategoriaFilter] = useState<string>('');
-  const [provinciaFilter, setProvinciaFilter] = useState<string>('');
+  const [provincias, setProvincias] = useState<Provincia[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  
+  // Filtros
+  const [categoriaFilter, setCategoriaFilter] = useState<number | null>(null);
+  const [provinciaFilter, setProvinciaFilter] = useState<number | null>(null);
+  const [tipoFilter, setTipoFilter] = useState<string>('Oferta'); // Por defecto "Oferta"
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Cargar oposiciones del API
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const [total, setTotal] = useState(0);
+
+  // Cargar catálogos (provincias y categorías)
   useEffect(() => {
-    const fetchOposiciones = async () => {
+    const fetchCatalogs = async () => {
       try {
-        setLoading(true);
-        const data = await oposicionesService.getOposiciones();
-        setOposiciones(data);
+        const [provData, catData] = await Promise.all([
+          provinciasService.getProvincias(),
+          categoriasService.getCategorias()
+        ]);
+        setProvincias(provData);
+        setCategorias(catData);
       } catch (error) {
-        message.error('Error al cargar las oposiciones');
-      } finally {
-        setLoading(false);
+        message.error('Error al cargar los filtros');
       }
     };
 
-    fetchOposiciones();
+    fetchCatalogs();
   }, []);
 
-  // Extraer categorías y provincias únicas del mismo GET de oposiciones
-  const categorias = useMemo(() => {
-    const uniqueCategorias = [...new Set(oposiciones.map(o => o.categoria))];
-    return uniqueCategorias.sort();
-  }, [oposiciones]);
+  // Cargar oposiciones con filtros
+  useEffect(() => {
+    fetchOposiciones();
+  }, [currentPage, pageSize, categoriaFilter, provinciaFilter, tipoFilter, searchTerm]);
 
-  const provincias = useMemo(() => {
-    const uniqueProvincias = [...new Set(oposiciones.map(o => o.provincia))];
-    return uniqueProvincias.sort();
-  }, [oposiciones]);
+  const fetchOposiciones = async () => {
+    try {
+      setLoading(true);
+      const offset = (currentPage - 1) * pageSize;
+      
+      const filters = {
+        search: searchTerm || undefined,
+        provincia_id: provinciaFilter || undefined,
+        categoria_id: categoriaFilter || undefined,
+        tipo: tipoFilter || undefined,
+        limit: pageSize,
+        offset
+      };
 
-  // Filtrar oposiciones
-  const oposicionesFiltradas = useMemo(() => {
-    return oposiciones.filter(o => {
-      const matchCategoria = !categoriaFilter || o.categoria === categoriaFilter;
-      const matchProvincia = !provinciaFilter || o.provincia === provinciaFilter;
-      const matchSearch = !searchTerm || 
-        o.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        o.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchCategoria && matchProvincia && matchSearch;
-    });
-  }, [oposiciones, categoriaFilter, provinciaFilter, searchTerm]);
+      const result = await oposicionesService.getOposicionesAdmin(filters);
+      
+      // Mapear los datos de OposicionAdmin a Oposicion
+      const mappedOposiciones: Oposicion[] = result.data.map(item => ({
+        id: item.id.toString(),
+        titulo: item.titulo,
+        descripcion: item.observaciones || `${item.nombre_categoria} - ${item.nombre_provincia}`,
+        categoria: item.nombre_categoria,
+        categoriaId: item.categoria_id,
+        provincia: item.nombre_provincia,
+        provinciaId: item.provincia_id,
+        fechaConvocatoria: item.fecha_convocatoria,
+        plazas: item.num_plazas,
+        estado: item.estado === 'Abierta' ? 'abierta' : item.estado === 'Cerrada' ? 'cerrada' : 'proxima',
+        urlBasesOficiales: item.url_bases_oficiales,
+        tieneTemarioListo: item.tiene_temario_listo
+      }));
 
-const handleSolicitarTemario = async (id: string) => {
-  try {
-    const oposicion = oposiciones.find(o => o.id === id);
-
-    const payload = {
-      user_id: parseInt(user?.id || '0'),
-      oposicion_id: parseInt(id)
-    };
-
-    const response = await oposicionesService.compararTemario(payload);
-
-    if (typeof response === 'string') {
-      message.info(response);
-      // iniciarPolling(payload, oposicion?.titulo);
-      return;
+      setOposiciones(mappedOposiciones);
+      setTotal(result.total);
+    } catch (error) {
+      message.error('Error al cargar las oposiciones');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (response?.url_pdf_final) {
-      message.success(`Temario aprobado para: ${oposicion?.titulo}`);
-      window.open(response.url_pdf_final, '_blank');
+  const handleSolicitarTemario = async (id: string) => {
+    try {
+      const oposicion = oposiciones.find(o => o.id === id);
+
+      const payload = {
+        user_id: parseInt(user?.id || '0'),
+        oposicion_id: parseInt(id)
+      };
+
+      const response = await oposicionesService.compararTemario(payload);
+
+      if (typeof response === 'string') {
+        message.info(response);
+        return;
+      }
+
+      // if (response?.url_pdf_final) {
+      //   message.success(`Temario aprobado para: ${oposicion?.titulo}`);
+      //   window.open(response.url_pdf_final, '_blank');
+      // }
+    } catch (error) {
+      message.error('Error al solicitar el temario');
     }
-  } catch (error) {
-    message.error('Error al solicitar el temario');
-  }
-};
+  };
+
+  const handleFilterChange = () => {
+    setCurrentPage(1); // Resetear a la primera página cuando cambian los filtros
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setCategoriaFilter(null);
+    setProvinciaFilter(null);
+    setTipoFilter('Oferta');
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters = searchTerm || categoriaFilter || provinciaFilter || (tipoFilter && tipoFilter !== 'Oferta');
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -89,14 +142,6 @@ const handleSolicitarTemario = async (id: string) => {
       transition: { staggerChildren: 0.1 }
     }
   };
-
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <Spin size="large" tip="Cargando oposiciones..." />
-      </div>
-    );
-  }
 
   return (
     <motion.div
@@ -125,83 +170,157 @@ const handleSolicitarTemario = async (id: string) => {
       </div>
 
       <motion.div 
-        className="filters-container"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <div className="filters-row">
-          <div className="filter-item search-filter">
-            <Input
-              placeholder="Buscar oposición..."
-              prefix={<SearchOutlined />}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-              allowClear
-            />
+        <Card className="filters-card">
+          <div className="filters-row">
+            <div className="filter-item search-filter">
+              <Input
+                placeholder="Buscar oposición..."
+                prefix={<SearchOutlined />}
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  handleFilterChange();
+                }}
+                className="search-input"
+                allowClear
+              />
+            </div>
+
+            <div className="filter-item">
+              <Select
+                placeholder={
+                  <span>
+                    <FilterOutlined /> Tipo
+                  </span>
+                }
+                value={tipoFilter || undefined}
+                onChange={(value) => {
+                  setTipoFilter(value);
+                  handleFilterChange();
+                }}
+                allowClear
+                className="filter-select"
+              >
+                {TIPOS_OPOSICION.map(tipo => (
+                  <Option key={tipo} value={tipo}>{tipo}</Option>
+                ))}
+              </Select>
+            </div>
+
+            <div className="filter-item">
+              <Select
+                placeholder={
+                  <span>
+                    <FilterOutlined /> Provincia
+                  </span>
+                }
+                value={provinciaFilter || undefined}
+                onChange={(value) => {
+                  setProvinciaFilter(value);
+                  handleFilterChange();
+                }}
+                allowClear
+                className="filter-select"
+              >
+                {provincias.map(prov => (
+                  <Option key={prov.id} value={prov.id}>{prov.nombre}</Option>
+                ))}
+              </Select>
+            </div>
+
+            <div className="filter-item">
+              <Select
+                placeholder={
+                  <span>
+                    <FilterOutlined /> Categoría
+                  </span>
+                }
+                value={categoriaFilter || undefined}
+                onChange={(value) => {
+                  setCategoriaFilter(value);
+                  handleFilterChange();
+                }}
+                allowClear
+                className="filter-select"
+              >
+                {categorias.map(cat => (
+                  <Option key={cat.id} value={cat.id}>{cat.nombre}</Option>
+                ))}
+              </Select>
+            </div>
+
+            {hasActiveFilters && (
+              <div>
+                <Button  onClick={clearFilters}>
+                  Limpiar filtros
+                </Button>
+              </div>
+            )}
           </div>
 
-          <div className="filter-item">
-            <Select
-              placeholder={
-                <span>
-                  <FilterOutlined /> Categoría
-                </span>
-              }
-              value={categoriaFilter || undefined}
-              onChange={setCategoriaFilter}
-              allowClear
-              className="filter-select"
-            >
-              {categorias.map(cat => (
-                <Select.Option key={cat} value={cat}>{cat}</Select.Option>
-              ))}
-            </Select>
+          <div className="results-info">
+            <span className="results-count">
+              {total} oposiciones encontradas
+            </span>
+            {hasActiveFilters && (
+              <Tag color="blue">
+                {[
+                  searchTerm && 'Búsqueda',
+                  tipoFilter && tipoFilter !== 'Oferta' && 'Tipo',
+                  provinciaFilter && 'Provincia',
+                  categoriaFilter && 'Categoría'
+                ].filter(Boolean).join(', ')} activo(s)
+              </Tag>
+            )}
           </div>
-
-          <div className="filter-item">
-            <Select
-              placeholder={
-                <span>
-                  <FilterOutlined /> Provincia
-                </span>
-              }
-              value={provinciaFilter || undefined}
-              onChange={setProvinciaFilter}
-              allowClear
-              className="filter-select"
-            >
-              {provincias.map(prov => (
-                <Select.Option key={prov} value={prov}>{prov}</Select.Option>
-              ))}
-            </Select>
-          </div>
-        </div>
-
-        <div className="results-count">
-          {oposicionesFiltradas.length} oposiciones encontradas
-        </div>
+        </Card>
       </motion.div>
 
-      {oposicionesFiltradas.length > 0 ? (
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <Row gutter={[24, 24]}>
-            {oposicionesFiltradas.map((oposicion, index) => (
-              <Col xs={24} sm={12} lg={8} xl={6} key={oposicion.id}>
-                <OposicionCard
-                  oposicion={oposicion}
-                  index={index}
-                  onSolicitarTemario={handleSolicitarTemario}
-                />
-              </Col>
-            ))}
-          </Row>
-        </motion.div>
+      {loading ? (
+        <div className="loading-container">
+          <Spin size="large" tip="Cargando oposiciones..." />
+        </div>
+      ) : oposiciones.length > 0 ? (
+        <>
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <Row gutter={[24, 24]}>
+              {oposiciones.map((oposicion, index) => (
+                <Col xs={24} sm={12} lg={8} xl={6} key={oposicion.id}>
+                  <OposicionCard
+                    oposicion={oposicion}
+                    index={index}
+                    onSolicitarTemario={handleSolicitarTemario}
+                  />
+                </Col>
+              ))}
+            </Row>
+          </motion.div>
+
+          <div className="pagination-container">
+            <Pagination
+              current={currentPage}
+              pageSize={pageSize}
+              total={total}
+              onChange={(page, size) => {
+                setCurrentPage(page);
+                setPageSize(size || 12);
+              }}
+              showSizeChanger
+              showQuickJumper
+              pageSizeOptions={['12', '24', '48']}
+              showTotal={(total, range) => `${range[0]}-${range[1]} de ${total} oposiciones`}
+              className="oposiciones-pagination"
+            />
+          </div>
+        </>
       ) : (
         <motion.div
           initial={{ opacity: 0 }}

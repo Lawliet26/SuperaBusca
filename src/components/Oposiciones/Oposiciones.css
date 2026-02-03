@@ -21,13 +21,13 @@
   font-size: 16px;
 }
 
-.filters-container {
+/* .filters-container {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 32px;
-}
+} */
 
 .filters-row {
   display: flex;
@@ -120,5 +120,35 @@
   .search-filter {
     width: 100%;
     min-width: 100%;
+  }
+}
+
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+  padding: 24px 0;
+}
+
+.oposiciones-pagination {
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .filters-row {
+    flex-direction: column;
+  }
+
+  .filter-item,
+  .search-filter {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .results-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }

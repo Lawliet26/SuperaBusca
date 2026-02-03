@@ -25,6 +25,7 @@ interface OposicionAPI {
 interface CompararTemarioPayload {
   user_id: number;
   oposicion_id: number;
+  
 }
 
 interface UpdateOposicionPayload {
