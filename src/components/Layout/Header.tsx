@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Menu, Button, Dropdown, Space, Avatar } from 'antd';
-import { 
-  LogoutOutlined, 
-  UserOutlined, 
+import {
+  LogoutOutlined,
+  UserOutlined,
   MenuOutlined,
   BookOutlined,
   FileSearchOutlined,
@@ -20,7 +20,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
-  const { user, logout, isProfesor } = useAuth();
+  const { user, logout, isProfesor, isAdmin } = useAuth();
 
   // Menú items - Revisiones y Correcciones solo visibles para profesores
   const menuItems = [
@@ -28,6 +28,7 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
     { key: 'revisiones', label: 'Revisiones', icon: <FileSearchOutlined />, visible: isProfesor },
     { key: 'correcciones', label: 'Correcciones', icon: <EditOutlined />, visible: isProfesor },
     { key: 'misconvocatorias', label: 'Mis Convocatorias', icon: <SnippetsOutlined />, visible: true },
+    { key: 'admin', label: 'Administrador', icon: <EditOutlined />, visible: isAdmin },
 
   ].filter(item => item.visible);
 
@@ -78,14 +79,14 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
   }));
 
   return (
-    <motion.header 
+    <motion.header
       className="header"
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
     >
       <div className="header-content">
-        <motion.div 
+        <motion.div
           className="logo"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -111,24 +112,24 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
 
         <div className="header-actions">
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <motion.div 
+            <motion.div
               className="user-avatar"
               whileHover={{ scale: 1.1 }}
             >
-              <Avatar 
-                icon={<UserOutlined />} 
-                style={{ 
+              <Avatar
+                icon={<UserOutlined />}
+                style={{
                   background: 'linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%)',
                   cursor: 'pointer'
-                }} 
+                }}
               />
             </motion.div>
           </Dropdown>
 
           <div className="nav-mobile">
             <Dropdown menu={{ items: mobileMenuItems }} placement="bottomRight">
-              <Button 
-                type="text" 
+              <Button
+                type="text"
                 icon={<MenuOutlined style={{ color: 'white', fontSize: '20px' }} />}
               />
             </Dropdown>

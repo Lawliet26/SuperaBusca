@@ -19,7 +19,7 @@ export interface User {
   id: string;
   username: string;
   nombre: string;
-  rol: 'PROFESOR' | 'ESTUDIANTE';
+  rol: 'PROFESOR' | 'ESTUDIANTE' | 'ADMINISTRADOR';
 }
 
 export interface Recurso {
@@ -37,4 +37,28 @@ export interface OposicionData {
   titulo_oposicion: string;
   estado_solicitud: string;
   temario: TemaTemario[];
+}
+
+export interface OposicionAdmin {
+  id: number;
+  titulo: string;
+  num_plazas: number;
+  url_bases_oficiales: string;
+  fecha_convocatoria: string;
+  tiene_temario_listo: boolean;
+  provincia_id: number;
+  nombre_provincia: string;
+  categoria_id: number;
+  nombre_categoria: string;
+  tipo: string;
+  estado: string;
+  municipio_id?: number;
+  nombre_municipio?: string;
+  fecha_fin?: string;
+  observaciones?: string;
+  ccaa?: string;
+}
+export interface Categoria {
+  id: number;
+  nombre: string;
 }

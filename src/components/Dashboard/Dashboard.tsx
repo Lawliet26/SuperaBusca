@@ -6,6 +6,7 @@ import Revisiones from '../Revisiones/Revisiones';
 import Correcciones from '../Correcciones/Correcciones';
 import './Dashboard.css';
 import Temarios from '../Temarios/Temarios';
+import AdminOposiciones from '../Admin/adminOposiciones';
 
 const Dashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('oposiciones');
@@ -26,20 +27,22 @@ const Dashboard: React.FC = () => {
         return <Correcciones />;
       case 'misconvocatorias':
         return <Temarios />;
+      case 'admin':
+        return <AdminOposiciones />;
       default:
         return <Oposiciones />;
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="dashboard"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
       <Header currentPage={currentPage} onNavigate={setCurrentPage} />
-      
+
       <main className="dashboard-content">
         <AnimatePresence mode="wait">
           <motion.div

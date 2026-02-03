@@ -24,13 +24,14 @@ export const authService = {
 
       if (response.data && response.data.length > 0) {
         const userData = response.data[0];
+console.log(userData);
 
         const user: User = {
           id: userData.usuario_id.toString(),
           username: userData.email,
           nombre: userData.nombre,
           profesor_id: userData.profesor_id ? userData.profesor_id.toString() : undefined,
-          rol: userData.tipo_acceso as 'PROFESOR' | 'ESTUDIANTE'
+          rol: userData.tipo_acceso as 'PROFESOR' | 'ESTUDIANTE' | 'ADMINISTRADOR'
         };
 
         // Guardar usuario en cookie encriptada

@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isProfesor: boolean;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
@@ -14,7 +15,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-
   // Cargar usuario de cookie al iniciar
   useEffect(() => {
     const savedUser = authService.getCurrentUser();
@@ -26,6 +26,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const loggedUser = await authService.login(email, password);
+      console.log(loggedUser);
+      
       if (loggedUser) {
         setUser(loggedUser);
         return true;
@@ -43,12 +45,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const isProfesor = user?.rol === 'PROFESOR';
+  const isAdmin = user?.rol === 'ADMINISTRADOR';
 
   return (
     <AuthContext.Provider value={{ 
       user, 
       isAuthenticated: !!user, 
       isProfesor,
+      isAdmin,
       login, 
       logout 
     }}>
