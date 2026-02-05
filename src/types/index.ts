@@ -11,6 +11,9 @@ export interface Oposicion {
   estado: 'abierta' | 'cerrada' | 'en curso';
   urlBasesOficiales?: string;
   tieneTemarioListo?: boolean;
+  nombre_municipio?: string;
+  municipio_id?: number;
+  convocante?: string;
 }
 
 
@@ -62,6 +65,7 @@ export interface OposicionAdmin {
   categoria_id: number;
   nombre_categoria: string;
   tipo: string;
+  convocante: string;
   estado: string;
   municipio_id?: number;
   nombre_municipio?: string;

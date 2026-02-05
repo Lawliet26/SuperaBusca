@@ -187,7 +187,7 @@ const AdminOposiciones: React.FC = () => {
     try {
       await oposicionesService.updateOposicion({
         id,
-        categoria_id: editedRow.categoria_id,
+        categoria: editedRow.categoria_id,
         tipo: editedRow.tipo,
         estado: editedRow.estado,
         url_bases_oficiales: editedRow.url_bases_oficiales,
@@ -455,7 +455,7 @@ const AdminOposiciones: React.FC = () => {
     },
     {
       title: 'Categoría',
-      dataIndex: 'categoria_id',
+      dataIndex: 'categoria',
       key: 'categoria_id',
       width: 270,
       render: (_, record) => {

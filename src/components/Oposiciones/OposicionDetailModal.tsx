@@ -4,7 +4,8 @@ import {
   CalendarOutlined,
   EnvironmentOutlined,
   TeamOutlined,
-  BookOutlined
+  BookOutlined,
+  LinkOutlined
 } from '@ant-design/icons';
 import {
   X,
@@ -43,7 +44,7 @@ export const OposicionDetailModal = ({
 
   const fetchRecursos = async () => {
     if (!oposicion?.id) return;
-    
+
     setLoading(true);
     try {
       const data = await recursosService.getRecursosByOposicion(Number(oposicion.id));
@@ -148,7 +149,7 @@ export const OposicionDetailModal = ({
       className="oposicion-detail-modal"
       closeIcon={<X />}
     >
-      <div className="detail-modal-content">
+      <div >
         {/* Header */}
         <div className="detail-modal-header">
           <div className="header-tags">
@@ -179,7 +180,13 @@ export const OposicionDetailModal = ({
                 <span className="info-value">{oposicion.provincia}</span>
               </div>
             </div>
-
+            <div className="info-item-detail">
+              <EnvironmentOutlined className="info-icon" />
+              <div>
+                <span className="info-label">Municipio</span>
+                <span className="info-value">{oposicion.nombre_municipio}</span>
+              </div>
+            </div>
             <div className="info-item-detail">
               <CalendarOutlined className="info-icon" />
               <div>
@@ -193,7 +200,6 @@ export const OposicionDetailModal = ({
                 </span>
               </div>
             </div>
-
             <div className="info-item-detail">
               <TeamOutlined className="info-icon" />
               <div>
@@ -201,6 +207,15 @@ export const OposicionDetailModal = ({
                 <span className="info-value">{oposicion.plazas} plazas</span>
               </div>
             </div>
+            <a className="info-value" href={oposicion.urlBasesOficiales} target="_blank" rel="noopener noreferrer">
+              <div className="info-item-detail">
+                <LinkOutlined className="info-icon" />
+                <div>
+                  <span className="info-label">Url de bases oficiables</span>
+                  <span className="info-value">Información de oposición</span>
+                </div>
+              </div>
+            </a>
           </div>
         </div>
 

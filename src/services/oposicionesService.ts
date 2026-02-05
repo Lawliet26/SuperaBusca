@@ -19,6 +19,7 @@ interface OposicionAPI {
   fecha_fin?: string;
   observaciones?: string;
   ccaa?: string;
+  convocante?: string;
   total_count?: string; // Agregar este campo
 }
 
@@ -31,7 +32,7 @@ interface CompararTemarioPayload {
 interface UpdateOposicionPayload {
   id: number;
   provincia_id?: number;
-  categoria_id?: number;
+  categoria?: number;
   municipio_id?: number;
   tipo?: string;
   estado?: string;
@@ -89,7 +90,13 @@ export const oposicionesService = {
         plazas: item.num_plazas,
         estado: item.tiene_temario_listo ? 'abierta' : 'proxima',
         urlBasesOficiales: item.url_bases_oficiales,
-        tieneTemarioListo: item.tiene_temario_listo
+        tieneTemarioListo: item.tiene_temario_listo,
+        nombre_municipio: item.nombre_municipio,
+        municipio_id: item.municipio_id,
+        fecha_fin: item.fecha_fin,
+        observaciones: item.observaciones,
+        ccaa: item.ccaa,
+        convocante: item.convocante
       }));
     } catch (error) {
       console.error('Error obteniendo oposiciones:', error);
@@ -140,6 +147,7 @@ export const oposicionesService = {
         provincia_id: item.provincia_id,
         nombre_provincia: item.nombre_provincia,
         categoria_id: item.categoria_id,
+        convocante: item.convocante || '',
         nombre_categoria: item.nombre_categoria,
         tipo: item.tipo || 'Convocatoria',
         estado: item.estado || 'Abierto',
