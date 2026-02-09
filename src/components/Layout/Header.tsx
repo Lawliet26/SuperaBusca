@@ -13,6 +13,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import type { MenuProps } from 'antd';
 import './Header.css';
+import logo from '../../assets/logos/logo-completo.png';
 
 interface HeaderProps {
   currentPage: string;
@@ -46,7 +47,7 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
       key: 'rol',
       label: (
         <Space>
-          <span style={{ color: user?.rol === 'PROFESOR' ? '#22c55e' : user?.rol === 'ESTUDIANTE' ? '#3b82f6' : '#ff0000' }}>
+          <span style={{ color: user?.rol === 'PROFESOR' ? '#22c55e' : user?.rol === 'ESTUDIANTE' ? '#5BE4EB' : '#ff0000' }}>
             {user?.rol === 'PROFESOR' ? 'Profesor' : user?.rol === 'ESTUDIANTE' ? 'Estudiante' : 'Admin'}
           </span>
         </Space>
@@ -92,8 +93,9 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <BookOutlined className="logo-icon" />
-          <span className="logo-text">OpoReview</span>
+          {/* <BookOutlined className="logo-icon" />asdasd */}
+          <img src={logo} alt="logo" className='logo-header' />
+          {/* <span className="logo-text">OpoReview</span> */}
         </motion.div>
 
         <nav className="nav-desktop">
@@ -120,7 +122,7 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
               <Avatar
                 icon={<UserOutlined />}
                 style={{
-                  background: 'linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%)',
+                  background: 'linear-gradient(135deg, #16253A 0%, #5BE4EB 100%)',
                   cursor: 'pointer'
                 }}
               />

@@ -74,35 +74,35 @@ interface OposicionesAdminFilters {
 }
 
 export const oposicionesService = {
-  async getOposiciones(): Promise<Oposicion[]> {
-    try {
-      const response = await api.get<OposicionAPI[]>('/lista-oposiciones');
+  // async getOposiciones(): Promise<Oposicion[]> {
+  //   try {
+  //     const response = await api.get<OposicionAPI[]>('/lista-oposiciones');
       
-      return response.data.map(item => ({
-        id: item.id.toString(),
-        titulo: item.titulo,
-        descripcion: `${item.nombre_categoria} - ${item.nombre_provincia}`,
-        categoria: item.nombre_categoria,
-        categoriaId: item.categoria_id,
-        provincia: item.nombre_provincia,
-        provinciaId: item.provincia_id,
-        fechaConvocatoria: item.fecha_convocatoria,
-        plazas: item.num_plazas,
-        estado: item.tiene_temario_listo ? 'abierta' : 'proxima',
-        urlBasesOficiales: item.url_bases_oficiales,
-        tieneTemarioListo: item.tiene_temario_listo,
-        nombre_municipio: item.nombre_municipio,
-        municipio_id: item.municipio_id,
-        fecha_fin: item.fecha_fin,
-        observaciones: item.observaciones,
-        ccaa: item.ccaa,
-        convocante: item.convocante
-      }));
-    } catch (error) {
-      console.error('Error obteniendo oposiciones:', error);
-      throw error;
-    }
-  },
+  //     return response.data.map(item => ({
+  //       id: item.id.toString(),
+  //       titulo: item.titulo,
+  //       descripcion: `${item.nombre_categoria} - ${item.nombre_provincia}`,
+  //       categoria: item.nombre_categoria,
+  //       categoriaId: item.categoria_id,
+  //       provincia: item.nombre_provincia,
+  //       provinciaId: item.provincia_id,
+  //       fechaConvocatoria: item.fecha_convocatoria,
+  //       plazas: item.num_plazas,
+  //       estado: item.tiene_temario_listo ? 'abierta' : 'proxima',
+  //       urlBasesOficiales: item.url_bases_oficiales,
+  //       tieneTemarioListo: item.tiene_temario_listo,
+  //       nombre_municipio: item.nombre_municipio,
+  //       municipio_id: item.municipio_id,
+  //       fecha_fin: item.fecha_fin,
+  //       observaciones: item.observaciones,
+  //       ccaa: item.ccaa,
+  //       convocante: item.convocante
+  //     }));
+  //   } catch (error) {
+  //     console.error('Error obteniendo oposiciones:', error);
+  //     throw error;
+  //   }
+  // },
 
   async compararTemario(payload: CompararTemarioPayload): Promise<void> {
     try {

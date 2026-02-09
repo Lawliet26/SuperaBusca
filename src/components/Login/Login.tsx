@@ -4,6 +4,8 @@ import { Form, Input, Button, message } from 'antd';
 import { UserOutlined, LockOutlined, BookOutlined } from '@ant-design/icons';
 import { useAuth } from '../../context/AuthContext';
 import './Login.css';
+import isotipo from '../../assets/ilustraciones/ilustracion S.png'
+import logo from '../../assets/logos/logo-text.png'
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -87,6 +89,9 @@ const Login: React.FC = () => {
         ))}
       </div>
 
+      <div className="isotipo-container">
+        <img src={isotipo} alt="isotipo" className='isotipo' />
+      </div>
       <AnimatePresence>
         <motion.div
           className="login-card"
@@ -95,11 +100,11 @@ const Login: React.FC = () => {
           animate="visible"
         >
           <motion.div className="login-logo" variants={logoVariants}>
-            <BookOutlined className="login-logo-icon" />
+               <img src={isotipo} alt="logo-text" style={{ width: 30 }}/>
           </motion.div>
 
           <motion.h1 className="login-title" variants={itemVariants}>
-            OpoReview
+            <img src={logo} alt="logo-text" style={{ width: 200 }}/>
           </motion.h1>
 
           <motion.p className="login-subtitle" variants={itemVariants}>
@@ -159,7 +164,7 @@ const Login: React.FC = () => {
           </motion.div>
 
           <motion.p className="login-footer" variants={itemVariants}>
-            © 2024 OpoReview - Todos los derechos reservados
+            © 2024 ThePower - Todos los derechos reservados
           </motion.p>
         </motion.div>
       </AnimatePresence>

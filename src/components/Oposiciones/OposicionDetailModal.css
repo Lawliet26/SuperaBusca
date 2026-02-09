@@ -4,7 +4,7 @@
   border-radius: 16px;
   overflow: hidden;
   max-height: 90vh;
-  background: #1a1a1a;
+  background: #000000;
 }
 
 .oposicion-detail-modal .ant-modal-body {
@@ -15,7 +15,7 @@
 
 .detail-modal-content {
   padding: 24px;
-  background: #1a1a1a;
+  background: #000000;
 }
 
 /* Header */
@@ -71,21 +71,21 @@
   align-items: flex-start;
   gap: 12px;
   padding: 16px;
-  background: #2a2a2a;
+  background: #181717;
   border-radius: 12px;
   transition: all 0.3s ease;
-  border: 1px solid #3a3a3a;
+  border: 1px solid #16253A;
 }
 
 .info-item-detail:hover {
-  background: #333333;
+  background: #16253A;
   transform: translateY(-2px);
-  border-color: #4a4a4a;
+  border-color: #16253A;
 }
 
 .info-icon {
   font-size: 24px;
-  color: #1890ff;
+  color: #5BE4EB;
   margin-top: 2px;
 }
 
@@ -136,7 +136,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   border: 2px solid transparent;
-  background: #2a2a2a;
+  background: #181717;
 }
 
 .recurso-card:hover {
@@ -146,57 +146,57 @@
 
 .recurso-card-documento {
   border-color: #ff6b6b;
-  background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, #2a2a2a 100%);
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, #181717 100%);
 }
 
 .recurso-card-documento:hover {
   border-color: #ff5252;
   box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
-  background: linear-gradient(135deg, rgba(255, 107, 107, 0.15) 0%, #2a2a2a 100%);
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.15) 0%, #181717 100%);
 }
 
 .recurso-card-imagen {
   border-color: #4ecdc4;
-  background: linear-gradient(135deg, rgba(78, 205, 196, 0.1) 0%, #2a2a2a 100%);
+  background: linear-gradient(135deg, rgba(78, 205, 196, 0.1) 0%, #181717 100%);
 }
 
 .recurso-card-imagen:hover {
   border-color: #3dbdb3;
   box-shadow: 0 8px 24px rgba(78, 205, 196, 0.3);
-  background: linear-gradient(135deg, rgba(78, 205, 196, 0.15) 0%, #2a2a2a 100%);
+  background: linear-gradient(135deg, rgba(78, 205, 196, 0.15) 0%, #181717 100%);
 }
 
 .recurso-card-video {
   border-color: #9b59b6;
-  background: linear-gradient(135deg, rgba(155, 89, 182, 0.1) 0%, #2a2a2a 100%);
+  background: linear-gradient(135deg, rgba(155, 89, 182, 0.1) 0%, #181717 100%);
 }
 
 .recurso-card-video:hover {
   border-color: #8e44ad;
   box-shadow: 0 8px 24px rgba(155, 89, 182, 0.3);
-  background: linear-gradient(135deg, rgba(155, 89, 182, 0.15) 0%, #2a2a2a 100%);
+  background: linear-gradient(135deg, rgba(155, 89, 182, 0.15) 0%, #181717 100%);
 }
 
 .recurso-card-audio {
   border-color: #f39c12;
-  background: linear-gradient(135deg, rgba(243, 156, 18, 0.1) 0%, #2a2a2a 100%);
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.1) 0%, #181717 100%);
 }
 
 .recurso-card-audio:hover {
   border-color: #e67e22;
   box-shadow: 0 8px 24px rgba(243, 156, 18, 0.3);
-  background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, #2a2a2a 100%);
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, #181717 100%);
 }
 
 .recurso-card-link {
   border-color: #3498db;
-  background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, #2a2a2a 100%);
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, #181717 100%);
 }
 
 .recurso-card-link:hover {
   border-color: #2980b9;
   box-shadow: 0 8px 24px rgba(52, 152, 219, 0.3);
-  background: linear-gradient(135deg, rgba(52, 152, 219, 0.15) 0%, #2a2a2a 100%);
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.15) 0%, #181717 100%);
 }
 
 .recurso-icon-container {
@@ -266,7 +266,7 @@
 
 /* Divider */
 .oposicion-detail-modal .ant-divider {
-  border-color: #3a3a3a;
+  border-color: #16253A;
 }
 
 /* Scrollbar */
@@ -275,17 +275,17 @@
 }
 
 .recursos-grid-detail::-webkit-scrollbar-track {
-  background: #2a2a2a;
+  background: #181717;
   border-radius: 10px;
 }
 
 .recursos-grid-detail::-webkit-scrollbar-thumb {
-  background: #4a4a4a;
+  background: #16253A;
   border-radius: 10px;
 }
 
 .recursos-grid-detail::-webkit-scrollbar-thumb:hover {
-  background: #5a5a5a;
+  background: #5BE4EB;
 }
 
 .oposicion-detail-modal .ant-modal-body::-webkit-scrollbar {
@@ -293,17 +293,17 @@
 }
 
 .oposicion-detail-modal .ant-modal-body::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: #000000;
   border-radius: 10px;
 }
 
 .oposicion-detail-modal .ant-modal-body::-webkit-scrollbar-thumb {
-  background: #4a4a4a;
+  background: #16253A;
   border-radius: 10px;
 }
 
 .oposicion-detail-modal .ant-modal-body::-webkit-scrollbar-thumb:hover {
-  background: #5a5a5a;
+  background: #5BE4EB;
 }
 
 /* Responsive */

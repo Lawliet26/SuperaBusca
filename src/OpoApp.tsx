@@ -22,8 +22,8 @@ const OpoApp: React.FC = () => {
       theme={{
         algorithm: theme.darkAlgorithm,
         token: {
-          colorPrimary: '#7c3aed',
-          colorBgContainer: 'rgba(255, 255, 255, 0.05)',
+          colorPrimary: '#5BE4EB',
+          colorBgContainer: '#16253A',
           colorBorder: 'rgba(255, 255, 255, 0.1)',
           colorText: '#f8fafc',
           colorTextSecondary: '#94a3b8',
@@ -32,14 +32,15 @@ const OpoApp: React.FC = () => {
         },
         components: {
           Button: {
-            primaryShadow: '0 4px 16px rgba(124, 58, 237, 0.3)',
+            primaryShadow: '0 4px 16px rgba(91, 228, 235, 0.3)',
           },
           Input: {
-            activeBorderColor: '#7c3aed',
-            hoverBorderColor: '#a78bfa',
+            activeBorderColor: '#5BE4EB',
+            hoverBorderColor: '#8AEEF3',
+             colorBgContainer: '#16253A',
           },
           Select: {
-            optionSelectedBg: 'rgba(124, 58, 237, 0.2)',
+            optionSelectedBg: 'rgba(91, 228, 235, 0.2)',
           },
         },
       }}

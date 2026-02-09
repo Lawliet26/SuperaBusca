@@ -13,7 +13,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 16px; 
+  gap: 16px;
 }
 
 .card-header {
@@ -70,22 +70,23 @@
   color: var(--primary-purple-light);
 }
 
-.oposicion-card .ant-card-body > :last-child {
+.oposicion-card .ant-card-body> :last-child {
   margin-top: auto;
 }
 
 .solicitar-btn {
   height: 44px !important;
   border-radius: 10px !important;
-  background: var(--gradient-primary) !important;
+  background: #16253A !important;
   border: none !important;
   font-weight: 600 !important;
   font-size: 14px !important;
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3) !important;
+  box-shadow: 0 4px 16px rgba(23, 55, 57, 0.3) !important;
 }
 
 .solicitar-btn:hover {
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4) !important;
+  background: var(--gradient-primary) !important;
+  box-shadow: 0 8px 24px rgba(91, 228, 235, 0.4) !important;
 }
 
 .guardar-btn {
@@ -95,9 +96,9 @@
   border: none !important;
   font-weight: 600 !important;
   font-size: 14px !important;
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3) !important;
+  box-shadow: 0 4px 16px rgba(91, 228, 235, 0.3) !important;
 }
 
 .guardar-btn:hover {
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(91, 228, 235, 0.4) !important;
 }

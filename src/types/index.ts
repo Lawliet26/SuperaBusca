@@ -63,6 +63,7 @@ export interface OposicionAdmin {
   provincia_id: number;
   nombre_provincia: string;
   categoria_id: number;
+  // categoria_nombre: string;
   nombre_categoria: string;
   tipo: string;
   convocante: string;

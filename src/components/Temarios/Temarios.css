@@ -25,7 +25,7 @@
 .temarios-title {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #3b82f6;
+  color: #5BE4EB;
   margin-bottom: 0.5rem;
 }
 
@@ -61,7 +61,7 @@
 .temarios-loading-spinner {
   width: 2.5rem;
   height: 2.5rem;
-  color: #7c3aed;
+  color: #5BE4EB;
   animation: spin 1s linear infinite;
 }
 
@@ -98,8 +98,8 @@
 }
 
 /* .temarios-container .oposicion-card-accordion:hover {
-  border-color: rgba(124, 58, 237, 0.5);
-  box-shadow: 0 0 30px rgba(124, 58, 237, 0.3);
+  border-color: rgba(91, 228, 235, 0.5);
+  box-shadow: 0 0 30px rgba(91, 228, 235, 0.3);
   transform: translateY(-2px);
 } */
 
@@ -203,7 +203,7 @@
 
 .estado-tag--info {
   background-color: rgba(59, 130, 246, 0.2);
-  color: #3b82f6;
+  color: #5BE4EB;
 }
 
 .estado-tag--warning {
@@ -281,7 +281,7 @@
 }
 
 .temarios-container .recurso-link:hover {
-  color: #a78bfa;
+  color: #8AEEF3;
 }
 
 .temarios-container .recurso-link:hover .recurso-filename {
@@ -291,7 +291,7 @@
 .temarios-container .recurso-icon {
   width: 1rem;
   height: 1rem;
-  color: #3b82f6;
+  color: #5BE4EB;
   flex-shrink: 0;
 }
 

@@ -1,11 +1,17 @@
 .header {
-  background: rgba(15, 23, 42, 0.95);
+  background: #16253a54;
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 1000;
+    backdrop-filter: blur(10px);
   padding: 0 24px;
+}
+
+.logo-header{
+  width: 120px;
+  height: auto;
 }
 
 .header-content {

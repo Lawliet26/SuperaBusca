@@ -389,8 +389,8 @@ const AdminOposiciones: React.FC = () => {
 
   const getTipoColor = (tipo: string) => {
     switch (tipo) {
-      case 'Convocatoria': return '#7c3aed';
-      case 'Oferta': return '#3b82f6';
+      case 'Convocatoria': return '#5BE4EB';
+      case 'Oferta': return '#3ABBC2';
       default: return '#6b7280';
     }
   };
@@ -477,7 +477,7 @@ const AdminOposiciones: React.FC = () => {
       key: 'num_plazas',
       width: 90,
       align: 'center',
-      render: (plazas) => <Badge count={plazas} showZero color="#7c3aed" />
+      render: (plazas) => <Badge count={plazas} showZero color="#5BE4EB" />
     },
     {
       title: 'Tipo',
@@ -554,7 +554,7 @@ const AdminOposiciones: React.FC = () => {
         }
         return record.fecha_convocatoria ? (
           <Space size={4}>
-            <CalendarOutlined style={{ color: '#7c3aed' }} />
+            <CalendarOutlined style={{ color: '#5BE4EB' }} />
             <Text>{dayjs(record.fecha_convocatoria).format('DD/MM/YYYY')}</Text>
           </Space>
         ) : (

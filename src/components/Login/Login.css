@@ -20,7 +20,7 @@
 .floating-shape {
   position: absolute;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.3) 0%, rgba(124, 58, 237, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(22, 37, 58, 0.3) 0%, rgba(91, 228, 235, 0.3) 100%);
   filter: blur(40px);
 }
 
@@ -49,7 +49,7 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 24px;
-  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 10px 30px rgba(91, 228, 235, 0.4);
 }
 
 .login-logo-icon {
@@ -85,7 +85,7 @@
 .login-input:hover,
 .login-input:focus {
   border-color: var(--primary-purple-light) !important;
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2) !important;
+  box-shadow: 0 0 0 2px rgba(91, 228, 235, 0.2) !important;
 }
 
 .login-input .ant-input {
@@ -109,16 +109,17 @@
 .login-button {
   height: 52px !important;
   border-radius: 12px !important;
-  background: var(--gradient-primary) !important;
+  background: #16253A;
   border: none !important;
   font-size: 16px !important;
   font-weight: 600 !important;
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(28, 63, 65, 0.4) !important;
   transition: all 0.3s ease !important;
 }
 
 .login-button:hover {
-  box-shadow: 0 12px 32px rgba(124, 58, 237, 0.5) !important;
+  background: var(--gradient-primary) !important;
+  box-shadow: 0 12px 32px rgba(91, 228, 235, 0.5) !important;
   transform: translateY(-2px);
 }
 

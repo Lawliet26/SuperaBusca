@@ -4,6 +4,21 @@
   flex-direction: column;
 }
 
+.isotipo-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(30%, -50%);
+  z-index: -1;
+
+}
+
+.isotipo {
+  /* width: 300px; */
+  height: auto;
+  opacity: 0.1;
+}
+
 .dashboard-content {
   flex: 1;
   padding: 32px;

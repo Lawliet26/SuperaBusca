@@ -78,7 +78,7 @@ const Oposiciones: React.FC = () => {
         titulo: item.titulo,
         descripcion: item.observaciones || `${item.nombre_categoria} - ${item.nombre_provincia}`,
         categoria: item.nombre_categoria,
-        categoriaId: item.categoria_nombre,
+        categoriaId: item.categoria_id,
         convocante: item.convocante,
         municipio_id: item.municipio_id,
         nombre_municipio: item.nombre_municipio,

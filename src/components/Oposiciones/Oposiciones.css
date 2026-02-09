@@ -28,6 +28,9 @@
   padding: 24px;
   margin-bottom: 32px;
 } */
+.results-info {
+ margin-top: 10px;
+}
 
 .filters-row {
   display: flex;
@@ -49,7 +52,7 @@
 .search-input {
   height: 44px;
   border-radius: 10px !important;
-  background: rgba(255, 255, 255, 0.05) !important;
+  /* background: rgba(255, 255, 255, 0.05) !important; */
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
@@ -89,7 +92,7 @@
 }
 
 .results-count {
-  margin-top: 16px;
+  margin-right: 16px;
   color: var(--text-muted);
   font-size: 14px;
 }
