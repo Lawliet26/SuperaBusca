@@ -85,6 +85,7 @@ const Oposiciones: React.FC = () => {
         provincia: item.nombre_provincia,
         provinciaId: item.provincia_id,
         fechaConvocatoria: item.fecha_convocatoria,
+        fechaFinalizacion: item.fecha_fin,
         plazas: item.num_plazas,
         estado: item.estado === 'Abierta' ? 'abierta' : item.estado === 'Cerrada' ? 'cerrada' : 'en curso',
         urlBasesOficiales: item.url_bases_oficiales,
@@ -192,6 +193,8 @@ const Oposiciones: React.FC = () => {
 
             <div className="filter-item">
               <Select
+                showSearch
+                optionFilterProp="children"
                 placeholder={
                   <span>
                     <FilterOutlined /> Tipo
@@ -213,6 +216,8 @@ const Oposiciones: React.FC = () => {
 
             <div className="filter-item">
               <Select
+                showSearch
+                optionFilterProp="children"
                 placeholder={
                   <span>
                     <FilterOutlined /> Provincia
@@ -234,6 +239,8 @@ const Oposiciones: React.FC = () => {
 
             <div className="filter-item">
               <Select
+                showSearch
+                optionFilterProp="children"
                 placeholder={
                   <span>
                     <FilterOutlined /> Categoría

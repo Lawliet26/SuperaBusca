@@ -7,6 +7,7 @@ export interface Oposicion {
   provincia: string;
   provinciaId?: number;
   fechaConvocatoria: string;
+  fechaFinalizacion?: string;
   plazas: number;
   estado: 'abierta' | 'cerrada' | 'en curso';
   urlBasesOficiales?: string;

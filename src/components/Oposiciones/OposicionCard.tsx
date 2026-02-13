@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, Tag, Button, Tooltip } from 'antd';
 import {
   CalendarOutlined,
   EnvironmentOutlined,
   TeamOutlined,
-  BookOutlined
+  BookOutlined,
+  ClockCircleOutlined
 } from '@ant-design/icons';
 import { Oposicion } from '../../types';
 import './OposicionCard.css';
@@ -19,6 +20,22 @@ interface OposicionCardProps {
 
 const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolicitarTemario }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const countdown = useMemo(() => {
+    if (!oposicion.fechaFinalizacion) return null;
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const fin = new Date(oposicion.fechaFinalizacion);
+    fin.setHours(0, 0, 0, 0);
+    const diffMs = fin.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return { days: 0, label: 'Finalizada', urgency: 'expired' as const };
+    if (diffDays === 0) return { days: 0, label: 'Finaliza hoy', urgency: 'critical' as const };
+    if (diffDays === 1) return { days: 1, label: '1 dia restante', urgency: 'critical' as const };
+    if (diffDays <= 3) return { days: diffDays, label: `${diffDays} dias restantes`, urgency: 'danger' as const };
+    if (diffDays <= 7) return { days: diffDays, label: `${diffDays} dias restantes`, urgency: 'warning' as const };
+    return null;
+  }, [oposicion.fechaFinalizacion]);
 
   const getEstadoColor = (estado: string) => {
     switch (estado) {
@@ -74,6 +91,20 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
             <Tag className="estado-tag">{oposicion.categoria}</Tag>
           </div>
 
+          {/* <AnimatePresence>
+            {countdown && (
+              <motion.div
+                className={`countdown-banner countdown-${countdown.urgency}`}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <ClockCircleOutlined className="countdown-icon" />
+                <span className="countdown-text">{countdown.label}</span>
+              </motion.div>
+            )}
+          </AnimatePresence> */}
+
           <h3 className="card-title">{oposicion.titulo}</h3>
           <motion.div
             whileHover={{ scale: 1.02 }}
@@ -93,6 +124,15 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
                   <span>{new Date(oposicion.fechaConvocatoria).toLocaleDateString('es-ES')}</span>
                 </div>
               </Tooltip>
+
+              {/* {oposicion.fechaFinalizacion && (
+                <Tooltip title="Fecha de Finalización">
+                  <div className="info-item">
+                    <CalendarOutlined />
+                    <span>{new Date(oposicion.fechaFinalizacion).toLocaleDateString('es-ES')}</span>
+                  </div>
+                </Tooltip>
+              )} */}
 
               <Tooltip title="Plazas Disponibles">
                 <div className="info-item">

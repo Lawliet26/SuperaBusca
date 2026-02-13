@@ -200,6 +200,21 @@ export const OposicionDetailModal = ({
                 </span>
               </div>
             </div>
+            {oposicion.fechaFinalizacion && (
+              <div className="info-item-detail">
+                <CalendarOutlined className="info-icon" />
+                <div>
+                  <span className="info-label">Fecha de Finalización</span>
+                  <span className="info-value">
+                    {new Date(oposicion.fechaFinalizacion).toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="info-item-detail">
               <TeamOutlined className="info-icon" />
               <div>
