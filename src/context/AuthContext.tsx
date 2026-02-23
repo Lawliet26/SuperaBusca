@@ -8,13 +8,14 @@ interface AuthContextType {
   isProfesor: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+
   // Cargar usuario de cookie al iniciar
   useEffect(() => {
     const savedUser = authService.getCurrentUser();
@@ -26,8 +27,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const loggedUser = await authService.login(email, password);
-      console.log(loggedUser);
-      
       if (loggedUser) {
         setUser(loggedUser);
         return true;
@@ -39,8 +38,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const logout = () => {
-    authService.logout();
+  const logout = async (): Promise<void> => {
+    await authService.logout();
     setUser(null);
   };
 
@@ -48,13 +47,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const isAdmin = user?.rol === 'ADMINISTRADOR';
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isAuthenticated: !!user, 
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated: !!user,
       isProfesor,
       isAdmin,
-      login, 
-      logout 
+      login,
+      logout
     }}>
       {children}
     </AuthContext.Provider>
