@@ -26,7 +26,7 @@ interface OposicionAPI {
 interface CompararTemarioPayload {
   user_id: number;
   oposicion_id: number;
-  
+
 }
 
 interface UpdateOposicionPayload {
@@ -77,7 +77,7 @@ export const oposicionesService = {
   // async getOposiciones(): Promise<Oposicion[]> {
   //   try {
   //     const response = await api.get<OposicionAPI[]>('/lista-oposiciones');
-      
+
   //     return response.data.map(item => ({
   //       id: item.id.toString(),
   //       titulo: item.titulo,
@@ -106,7 +106,17 @@ export const oposicionesService = {
 
   async compararTemario(payload: CompararTemarioPayload): Promise<void> {
     try {
-      const response =await api.post('/comparar-temario', payload);
+      const response = await api.post('/comparar-temario', payload);
+      return response.data;
+    } catch (error) {
+      console.error('Error comparando temario:', error);
+      throw error;
+    }
+  },
+
+  async compararTemarioAdmin(payload: CompararTemarioPayload): Promise<void> {
+    try {
+      const response = await api.post('/temario-manual', payload);
       return response.data;
     } catch (error) {
       console.error('Error comparando temario:', error);
@@ -117,7 +127,7 @@ export const oposicionesService = {
   async getOposicionesAdmin(filters?: OposicionesAdminFilters): Promise<{ data: OposicionAdmin[], total: number }> {
     try {
       const params: any = {};
-      
+
       if (filters?.search) params.search = filters.search;
       if (filters?.provincia_id) params.provincia_id = filters.provincia_id;
       if (filters?.municipio_id) params.municipio_id = filters.municipio_id;
@@ -126,15 +136,15 @@ export const oposicionesService = {
       if (filters?.tipo) params.tipo = filters.tipo;
       if (filters?.fecha_inicio) params.fecha_inicio = filters.fecha_inicio;
       if (filters?.fecha_fin) params.fecha_fin = filters.fecha_fin;
-      
+
       params.limit = filters?.limit || 10;
       params.offset = filters?.offset || 0;
 
       const response = await api.get<OposicionAPI[]>('/lista-oposiciones', { params });
-      
+
       // Obtener el total_count del primer elemento de la respuesta
-      const totalCount = response.data.length > 0 && response.data[0].total_count 
-        ? parseInt(response.data[0].total_count) 
+      const totalCount = response.data.length > 0 && response.data[0].total_count
+        ? parseInt(response.data[0].total_count)
         : 0;
 
       const mappedData = response.data.map(item => ({

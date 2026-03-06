@@ -56,7 +56,7 @@ const TIPOS_OPOSICION = ['Convocatoria', 'Oferta'];
 const ESTADOS_OPOSICION = ['Abierta', 'Cerrada', 'En curso'];
 
 const AdminOposiciones: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isProfesor } = useAuth();
   const [oposiciones, setOposiciones] = useState<OposicionAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [provincias, setProvincias] = useState<Provincia[]>([]);
@@ -185,16 +185,19 @@ const AdminOposiciones: React.FC = () => {
   const saveRow = async (id: number) => {
     setSavingId(id);
     try {
-      await oposicionesService.updateOposicion({
-        id,
-        categoria: editedRow.categoria_id,
-        tipo: editedRow.tipo,
-        estado: editedRow.estado,
-        url_bases_oficiales: editedRow.url_bases_oficiales,
-        fecha_convocatoria: editedRow.fecha_convocatoria,
-        fecha_fin: editedRow.fecha_fin,
-        observaciones: editedRow.observaciones
-      });
+      const updatePayload = isProfesor
+        ? { id, url_bases_oficiales: editedRow.url_bases_oficiales }
+        : {
+            id,
+            categoria: editedRow.categoria_id,
+            tipo: editedRow.tipo,
+            estado: editedRow.estado,
+            url_bases_oficiales: editedRow.url_bases_oficiales,
+            fecha_convocatoria: editedRow.fecha_convocatoria,
+            fecha_fin: editedRow.fecha_fin,
+            observaciones: editedRow.observaciones
+          };
+      await oposicionesService.updateOposicion(updatePayload);
 
       message.success('Oposición actualizada correctamente');
       setEditingKey(null);
@@ -405,7 +408,7 @@ const AdminOposiciones: React.FC = () => {
         oposicion_id: id
       };
 
-      const response = await oposicionesService.compararTemario(payload);
+      const response = await oposicionesService.compararTemarioAdmin(payload);
 
       if (typeof response === 'string') {
         message.info(response);
@@ -461,7 +464,7 @@ const AdminOposiciones: React.FC = () => {
       key: 'categoria_id',
       width: 270,
       render: (_, record) => {
-        if (editingKey === record.id) {
+        if (editingKey === record.id && !isProfesor) {
           return renderSelectWithAdd(
             editedRow.categoria_id,
             categorias,
@@ -487,7 +490,7 @@ const AdminOposiciones: React.FC = () => {
       key: 'tipo',
       width: 130,
       render: (_, record) => {
-        if (editingKey === record.id) {
+        if (editingKey === record.id && !isProfesor) {
           return (
             <Select
               showSearch
@@ -518,7 +521,7 @@ const AdminOposiciones: React.FC = () => {
       key: 'estado',
       width: 120,
       render: (_, record) => {
-        if (editingKey === record.id) {
+        if (editingKey === record.id && !isProfesor) {
           return (
             <Select
               showSearch
@@ -548,7 +551,7 @@ const AdminOposiciones: React.FC = () => {
       key: 'fecha_convocatoria',
       width: 140,
       render: (_, record) => {
-        if (editingKey === record.id) {
+        if (editingKey === record.id && !isProfesor) {
           return (
             <DatePicker
               value={editedRow.fecha_convocatoria ? dayjs(editedRow.fecha_convocatoria) : null}
@@ -574,7 +577,7 @@ const AdminOposiciones: React.FC = () => {
       key: 'fecha_fin',
       width: 140,
       render: (_, record) => {
-        if (editingKey === record.id) {
+        if (editingKey === record.id && !isProfesor) {
           return (
             <DatePicker
               value={editedRow.fecha_fin ? dayjs(editedRow.fecha_fin) : null}
@@ -634,7 +637,7 @@ const AdminOposiciones: React.FC = () => {
       width: 250,
       ellipsis: true,
       render: (_, record) => {
-        if (editingKey === record.id) {
+        if (editingKey === record.id && !isProfesor) {
           return (
             <TextArea
               value={editedRow.observaciones}
@@ -685,7 +688,7 @@ const AdminOposiciones: React.FC = () => {
         }
         return (
           <Space size={4}>
-            <Tooltip title="Modifica los campos disponibles">
+            <Tooltip title={isProfesor ? "Editar URL de bases oficiales" : "Modifica los campos disponibles"}>
               <Button
                 type="text"
                 icon={<EditOutlined />}
@@ -707,7 +710,6 @@ const AdminOposiciones: React.FC = () => {
                 Aregar archivo
               </Button>
             </Tooltip>
-            <Tooltip title={record.tiene_temario_listo ? "Temario ya disponible para guardar" : "Solicita un temario"}>
               <Button
                 type="text"
                 icon={<FileAddOutlined />}
@@ -715,9 +717,8 @@ const AdminOposiciones: React.FC = () => {
                 disabled={editingKey !== null}
                 className="edit-btn"
               >
-                {record.tiene_temario_listo ? "Agregar a mis Convocatorias" : "Solicitar Temario"}
+               Solicitar Temario
               </Button>
-            </Tooltip>
           </Space>
         );
       }
@@ -762,13 +763,15 @@ const AdminOposiciones: React.FC = () => {
             )}
           </Space>
           <Space>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setAddOposicionModal(true)}
-            >
-              Nueva Oposición
-            </Button>
+            {!isProfesor && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setAddOposicionModal(true)}
+              >
+                Nueva Oposición
+              </Button>
+            )}
             <Button icon={<ReloadOutlined />} onClick={loadData} loading={loading}>
               Recargar
             </Button>
