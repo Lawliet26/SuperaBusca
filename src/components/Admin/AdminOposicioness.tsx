@@ -195,6 +195,7 @@ const AdminOposiciones: React.FC = () => {
             municipio_id: editedRow.municipio_id,
             tipo: editedRow.tipo,
             estado: editedRow.estado,
+            num_plazas: editedRow.num_plazas,
             url_bases_oficiales: editedRow.url_bases_oficiales,
             fecha_convocatoria: editedRow.fecha_convocatoria,
             fecha_fin: editedRow.fecha_fin,
@@ -521,7 +522,20 @@ const AdminOposiciones: React.FC = () => {
       key: 'num_plazas',
       width: 90,
       align: 'center',
-      render: (plazas) => <Badge count={plazas} showZero color="#5BE4EB" />
+      render: (_: any, record: OposicionAdmin) => {
+        if (editingKey === record.id && !isProfesor) {
+          return (
+            <InputNumber
+              min={0}
+              value={editedRow.num_plazas}
+              onChange={(val) => handleFieldChange('num_plazas', val ?? 0)}
+              className="admin-input"
+              style={{ width: 70 }}
+            />
+          );
+        }
+        return <Badge count={record.num_plazas} showZero color="#5BE4EB" />;
+      }
     },
     {
       title: 'Tipo',
