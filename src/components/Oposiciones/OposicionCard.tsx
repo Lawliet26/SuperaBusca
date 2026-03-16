@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, Tag, Button, Tooltip } from 'antd';
+import { Card, Tag, Button, Tooltip, Modal } from 'antd';
 import {
   CalendarOutlined,
   EnvironmentOutlined,
   TeamOutlined,
   BookOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  LockOutlined
 } from '@ant-design/icons';
 import { Oposicion } from '../../types';
 import './OposicionCard.css';
@@ -68,8 +69,14 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
   };
 
   const handleButtonClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Previene que se abra el modal
-    onSolicitarTemario(oposicion.id);
+    e.stopPropagation();
+    Modal.confirm({
+      title: '¿Solicitar temario?',
+      content: `Se solicitará el temario para "${oposicion.titulo}". ¿Deseas continuar?`,
+      okText: 'Confirmar',
+      cancelText: 'Cancelar',
+      onOk: () => onSolicitarTemario(oposicion.id),
+    });
   };
   
   return (
@@ -80,7 +87,7 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
         transition={{ duration: 0.4, delay: index * 0.1 }}
         whileHover={{ y: -8 }}
       >
-        <Card className="oposicion-card" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
+        <Card className="oposicion-card" onClick={handleCardClick} style={{ cursor: 'pointer', opacity: oposicion.tipo === 'Oferta' ? 0.5 : 1 }}>
           <div className="card-header">
             <Tag
               color={getEstadoColor(oposicion.estado)}
@@ -141,15 +148,18 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
                 </div>
               </Tooltip>
             </div>
-            <Button
-              type="primary"
-              icon={<BookOutlined />}
-              className={oposicion.tieneTemarioListo ? "guardar-btn" : "solicitar-btn"}
-              onClick={handleButtonClick}
-              block
-            >
-              {oposicion.tieneTemarioListo ? "Agregar a mis Convocatorias" : "Solicitar Temario"}
-            </Button>
+            <Tooltip title={oposicion.tipo === 'Oferta' ? 'Estará disponible en el momento que esté publicada la convocatoria' : ''}>
+              <Button
+                type="primary"
+                icon={oposicion.tipo === 'Oferta' ? <LockOutlined /> : <BookOutlined />}
+                className={oposicion.tieneTemarioListo ? "guardar-btn" : "solicitar-btn"}
+                onClick={handleButtonClick}
+                disabled={oposicion.tipo === 'Oferta'}
+                block
+              >
+                {oposicion.tieneTemarioListo ? "Agregar a mis Convocatorias" : "Solicitar Temario"}
+              </Button>
+            </Tooltip>
           </motion.div>
         </Card>
       </motion.div>

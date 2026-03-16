@@ -766,7 +766,15 @@ const AdminOposiciones: React.FC = () => {
               <Button
                 type="text"
                 icon={<FileAddOutlined />}
-                onClick={() => handleSolicitarTemario(record.id)}
+                onClick={() => {
+                  Modal.confirm({
+                    title: '¿Solicitar temario?',
+                    content: `Se solicitará el temario para "${record.titulo}". ¿Deseas continuar?`,
+                    okText: 'Confirmar',
+                    cancelText: 'Cancelar',
+                    onOk: () => handleSolicitarTemario(record.id),
+                  });
+                }}
                 disabled={editingKey !== null}
                 className="edit-btn"
               >

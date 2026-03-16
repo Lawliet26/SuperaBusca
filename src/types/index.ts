@@ -12,6 +12,7 @@ export interface Oposicion {
   estado: 'abierta' | 'cerrada' | 'en curso';
   urlBasesOficiales?: string;
   tieneTemarioListo?: boolean;
+  tipo?: string;
   nombre_municipio?: string;
   municipio_id?: number;
   convocante?: string;
