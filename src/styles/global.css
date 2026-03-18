@@ -196,6 +196,7 @@ body {
   border: 1px solid var(--border-color) !important;
 }
 
+
 .ant-modal-header {
   background: transparent !important;
   border-bottom: 1px solid var(--border-color) !important;

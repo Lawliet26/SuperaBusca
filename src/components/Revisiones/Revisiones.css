@@ -111,6 +111,13 @@
   gap: 8px;
 }
 
+.documento-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .documento-item {
   display: flex;
   flex-direction: column;
@@ -183,6 +190,69 @@
 .btn-solicitar {
   background: var(--gradient-primary) !important;
   border: none !important;
+}
+
+.mapeos-manuales-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(139, 92, 246, 0.06);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 10px;
+}
+
+.mapeos-manuales-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.mapeos-manuales-title {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-add-mapeo {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  height: 34px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4) !important;
+}
+
+.btn-add-mapeo:hover {
+  opacity: 0.9 !important;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.6) !important;
+}
+
+.mapeo-manual-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.mapeo-manual-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mapeo-backup {
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 
 @media (max-width: 768px) {

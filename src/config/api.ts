@@ -7,10 +7,10 @@ export const ACCESS_TOKEN_KEY = 'opo_access_token';
 export const REFRESH_TOKEN_KEY = 'opo_refresh_token';
 const AUTH_COOKIE_NAME = 'opo_auth_user';
 
-// 15 minutos expresados en días para setCookie
-const ACCESS_TOKEN_EXPIRY_DAYS = 15 / (60 * 24);
-// 7 días para el refresh token
-const REFRESH_TOKEN_EXPIRY_DAYS = 7;
+// 1 día para el access token
+const ACCESS_TOKEN_EXPIRY_DAYS = 1;
+// 30 días para el refresh token
+const REFRESH_TOKEN_EXPIRY_DAYS = 30;
 
 const api = axios.create({
   baseURL: API_BASE_URL,

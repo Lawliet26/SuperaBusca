@@ -534,7 +534,11 @@ const AdminOposiciones: React.FC = () => {
             />
           );
         }
-        return <Badge count={record.num_plazas} showZero color="#5BE4EB" />;
+        return (
+          <span style={{ color: '#5BE4EB', fontWeight: 600, fontSize: 14 }}>
+            {record.num_plazas}
+          </span>
+        );
       }
     },
     {
