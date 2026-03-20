@@ -19,7 +19,8 @@ import {
   Badge,
   InputNumber,
   Upload,
-  Radio
+  Radio,
+  Tabs
 } from 'antd';
 import {
   PlusOutlined,
@@ -47,6 +48,7 @@ import { recursosService } from '../../services/recursosService';
 import { OposicionAdmin } from '../../types';
 import './AdminOposiciones.css';
 import { useAuth } from '@/context/AuthContext';
+import AdminUsuarios from './AdminUsuarios';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -58,6 +60,7 @@ const ESTADOS_OPOSICION = ['Abierta', 'Cerrada', 'En curso'];
 
 const AdminOposiciones: React.FC = () => {
   const { user, isProfesor } = useAuth();
+  const [activeTab, setActiveTab] = useState('oposiciones');
   const [oposiciones, setOposiciones] = useState<OposicionAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [provincias, setProvincias] = useState<Provincia[]>([]);
@@ -74,6 +77,12 @@ const AdminOposiciones: React.FC = () => {
 
   // Filters
   const [searchText, setSearchText] = useState('');
+
+  const handleGestionarOposicion = (nombre: string) => {
+    setSearchText(nombre);
+    setCurrentPage(1);
+    setActiveTab('oposiciones');
+  };
   const [filterProvincia, setFilterProvincia] = useState<number | null>(null);
   const [filterMunicipio, setFilterMunicipio] = useState<number | null>(null);
   const [filterCategoria, setFilterCategoria] = useState<number | null>(null);
@@ -824,7 +833,17 @@ const AdminOposiciones: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="admin-header">
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        className="admin-tabs"
+        items={[
+          {
+            key: 'oposiciones',
+            label: 'Gestión de Oposiciones',
+            children: (
+              <>
+                <div className="admin-header">
         <div className="header-content">
           <Title level={2} className="admin-title">
             Gestión de Oposiciones
@@ -1388,6 +1407,16 @@ const AdminOposiciones: React.FC = () => {
         </Form>
       </Modal>
 
+              </>
+            ),
+          },
+          {
+            key: 'usuarios',
+            label: 'Gestión de Usuarios',
+            children: <AdminUsuarios onGestionarOposicion={handleGestionarOposicion} />,
+          },
+        ]}
+      />
     </motion.div>
   );
 };
