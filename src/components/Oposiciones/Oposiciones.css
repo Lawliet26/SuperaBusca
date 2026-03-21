@@ -115,6 +115,15 @@
     font-size: 28px;
   }
 
+  .page-subtitle {
+    font-size: 14px;
+  }
+
+  .oposiciones-container {
+    padding: 0;
+    overflow-x: hidden;
+  }
+
   .filters-row {
     flex-direction: column;
   }
@@ -122,7 +131,11 @@
   .filter-item,
   .search-filter {
     width: 100%;
-    min-width: 100%;
+    min-width: unset;
+  }
+
+  .filter-select {
+    width: 100% !important;
   }
 }
 
@@ -132,10 +145,37 @@
   justify-content: center;
   margin-top: 32px;
   padding: 24px 0;
+  width: 100%;
+  overflow-x: auto;
 }
 
 .oposiciones-pagination {
   text-align: center;
+}
+
+@media (max-width: 480px) {
+  .pagination-container {
+    padding: 16px 0;
+    margin-top: 16px;
+  }
+
+  .oposiciones-pagination .ant-pagination-total-text {
+    display: none;
+  }
+
+  .oposiciones-pagination .ant-pagination-item {
+    min-width: 28px;
+    height: 28px;
+    line-height: 26px;
+    font-size: 12px;
+  }
+
+  .oposiciones-pagination .ant-pagination-prev,
+  .oposiciones-pagination .ant-pagination-next {
+    min-width: 28px;
+    height: 28px;
+    line-height: 26px;
+  }
 }
 
 @media (max-width: 768px) {

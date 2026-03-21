@@ -86,6 +86,7 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: index * 0.1 }}
         whileHover={{ y: -8 }}
+        style={{ height: '100%' }}
       >
         <Card className="oposicion-card" onClick={handleCardClick} style={{ cursor: 'pointer', opacity: oposicion.tipo === 'Oferta' ? 0.5 : 1 }}>
           <div className="card-header">

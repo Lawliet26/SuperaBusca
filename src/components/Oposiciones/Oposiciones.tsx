@@ -299,9 +299,9 @@ const Oposiciones: React.FC = () => {
             initial="hidden"
             animate="visible"
           >
-            <Row gutter={[24, 24]}>
+            <Row gutter={[24, 24]} style={{ alignItems: 'stretch' }}>
               {oposiciones.map((oposicion, index) => (
-                <Col xs={24} sm={12} lg={8} xl={6} key={oposicion.id}>
+                <Col xs={24} sm={12} lg={8} xl={6} key={oposicion.id} style={{ display: 'flex', flexDirection: 'column' }}>
                   <OposicionCard
                     oposicion={oposicion}
                     index={index}
@@ -321,11 +321,12 @@ const Oposiciones: React.FC = () => {
                 setCurrentPage(page);
                 setPageSize(size || 12);
               }}
-              showSizeChanger
-              showQuickJumper
+              showSizeChanger={window.innerWidth > 768}
+              showQuickJumper={window.innerWidth > 768}
               pageSizeOptions={['12', '24', '48']}
-              showTotal={(total, range) => `${range[0]}-${range[1]} de ${total} oposiciones`}
+              showTotal={(total, range) => window.innerWidth > 480 ? `${range[0]}-${range[1]} de ${total} oposiciones` : `${range[0]}-${range[1]} / ${total}`}
               className="oposiciones-pagination"
+              responsive
             />
           </div>
         </>
