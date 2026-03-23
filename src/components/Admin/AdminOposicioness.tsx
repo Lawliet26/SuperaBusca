@@ -388,10 +388,12 @@ const AdminOposiciones: React.FC = () => {
     return (
       <Select
         showSearch
+        optionFilterProp="label"
         value={value}
         onChange={(val) => handleFieldChange(field, val)}
         className="admin-select"
         placeholder={placeholder}
+        options={options.map(opt => ({ value: opt.id, label: opt.nombre }))}
         classNames={{ popup: { root: 'admin-select-dropdown' } }}
         // @ts-ignore — dropdownRender deprecated in AntD v6 types but no functional replacement exists
         dropdownRender={(menu) => (
@@ -408,11 +410,7 @@ const AdminOposiciones: React.FC = () => {
             </Button>
           </>
         )}
-      >
-        {options.map(opt => (
-          <Option key={opt.id} value={opt.id}>{opt.nombre}</Option>
-        ))}
-      </Select>
+      />
     );
   };
 
@@ -589,14 +587,12 @@ const AdminOposiciones: React.FC = () => {
           return (
             <Select
               showSearch
-                    value={editedRow.tipo}
+              optionFilterProp="label"
+              value={editedRow.tipo}
               onChange={(val) => handleFieldChange('tipo', val)}
               className="admin-select"
-            >
-              {TIPOS_OPOSICION.map(tipo => (
-                <Option key={tipo} value={tipo}>{tipo}</Option>
-              ))}
-            </Select>
+              options={TIPOS_OPOSICION.map(t => ({ value: t, label: t }))}
+            />
           );
         }
         return (
@@ -619,14 +615,12 @@ const AdminOposiciones: React.FC = () => {
           return (
             <Select
               showSearch
-                    value={editedRow.estado}
+              optionFilterProp="label"
+              value={editedRow.estado}
               onChange={(val) => handleFieldChange('estado', val)}
               className="admin-select"
-            >
-              {ESTADOS_OPOSICION.map(estado => (
-                <Option key={estado} value={estado}>{estado}</Option>
-              ))}
-            </Select>
+              options={ESTADOS_OPOSICION.map(e => ({ value: e, label: e }))}
+            />
           );
         }
         return (
@@ -909,131 +903,82 @@ const AdminOposiciones: React.FC = () => {
 
           <Select
             showSearch
-                placeholder="Provincia"
+            optionFilterProp="label"
+            placeholder="Provincia"
             value={filterProvincia}
-            onChange={(value) => {
-              setFilterProvincia(value);
-              setCurrentPage(1);
-            }}
+            onChange={(value) => { setFilterProvincia(value); setCurrentPage(1); }}
             className="filter-select-sm"
             allowClear
-            // @ts-ignore — dropdownRender deprecated in AntD v6 types but no functional replacement exists
-        dropdownRender={(menu) => (
+            options={provincias.map(p => ({ value: p.id, label: p.nombre }))}
+            // @ts-ignore
+            dropdownRender={(menu: React.ReactNode) => (
               <>
                 {menu}
                 <Divider style={{ margin: '8px 0' }} />
-                <Button
-                  type="text"
-                  icon={<PlusOutlined />}
-                  onClick={() => { setNewItemName(''); setAddProvinciaModal(true); }}
-                  className="add-option-btn"
-                  style={{ width: '100%', textAlign: 'left' }}
-                >
-                  Agregar
-                </Button>
+                <Button type="text" icon={<PlusOutlined />} onClick={() => { setNewItemName(''); setAddProvinciaModal(true); }} className="add-option-btn" style={{ width: '100%', textAlign: 'left' }}>Agregar</Button>
               </>
             )}
-          >
-            {provincias.map(p => (
-              <Option key={p.id} value={p.id}>{p.nombre}</Option>
-            ))}
-          </Select>
+          />
 
           <Select
             showSearch
-                placeholder="Municipio"
+            optionFilterProp="label"
+            placeholder="Municipio"
             value={filterMunicipio}
-            onChange={(value) => {
-              setFilterMunicipio(value);
-              setCurrentPage(1);
-            }}
+            onChange={(value) => { setFilterMunicipio(value); setCurrentPage(1); }}
             className="filter-select-sm"
             allowClear
-            // @ts-ignore — dropdownRender deprecated in AntD v6 types but no functional replacement exists
-        dropdownRender={(menu) => (
+            options={municipios.map(m => ({ value: m.id, label: m.nombre }))}
+            // @ts-ignore
+            dropdownRender={(menu: React.ReactNode) => (
               <>
                 {menu}
                 <Divider style={{ margin: '8px 0' }} />
-                <Button
-                  type="text"
-                  icon={<PlusOutlined />}
-                  onClick={() => { setNewItemName(''); setAddMunicipioModal(true); }}
-                  className="add-option-btn"
-                  style={{ width: '100%', textAlign: 'left' }}
-                >
-                  Agregar
-                </Button>
+                <Button type="text" icon={<PlusOutlined />} onClick={() => { setNewItemName(''); setAddMunicipioModal(true); }} className="add-option-btn" style={{ width: '100%', textAlign: 'left' }}>Agregar</Button>
               </>
             )}
-          >
-            {municipios.map(m => (
-              <Option key={m.id} value={m.id}>{m.nombre}</Option>
-            ))}
-          </Select>
+          />
 
           <Select
             showSearch
-                placeholder="Categoría"
+            optionFilterProp="label"
+            placeholder="Categoría"
             value={filterCategoria}
-            onChange={(value) => {
-              setFilterCategoria(value);
-              setCurrentPage(1);
-            }}
+            onChange={(value) => { setFilterCategoria(value); setCurrentPage(1); }}
             className="filter-select-sm"
             allowClear
-            // @ts-ignore — dropdownRender deprecated in AntD v6 types but no functional replacement exists
-        dropdownRender={(menu) => (
+            options={categorias.map(c => ({ value: c.id, label: c.nombre }))}
+            // @ts-ignore
+            dropdownRender={(menu: React.ReactNode) => (
               <>
                 {menu}
                 <Divider style={{ margin: '8px 0' }} />
-                <Button
-                  type="text"
-                  icon={<PlusOutlined />}
-                  onClick={() => { setNewItemName(''); setAddCategoriaModal(true); }}
-                  className="add-option-btn"
-                  style={{ width: '100%', textAlign: 'left' }}
-                >
-                  Agregar
-                </Button>
+                <Button type="text" icon={<PlusOutlined />} onClick={() => { setNewItemName(''); setAddCategoriaModal(true); }} className="add-option-btn" style={{ width: '100%', textAlign: 'left' }}>Agregar</Button>
               </>
             )}
-          >
-            {categorias.map(c => (
-              <Option key={c.id} value={c.id}>{c.nombre}</Option>
-            ))}
-          </Select>
+          />
 
           <Select
             showSearch
-                placeholder="Estado"
+            optionFilterProp="label"
+            placeholder="Estado"
             value={filterEstado}
-            onChange={(value) => {
-              setFilterEstado(value);
-              setCurrentPage(1);
-            }}
+            onChange={(value) => { setFilterEstado(value); setCurrentPage(1); }}
             className="filter-select-sm"
             allowClear
-          >
-            {ESTADOS_OPOSICION.map(e => (
-              <Option key={e} value={e}>{e}</Option>
-            ))}
-          </Select>
+            options={ESTADOS_OPOSICION.map(e => ({ value: e, label: e }))}
+          />
 
           <Select
             showSearch
-                placeholder="Tipo"
+            optionFilterProp="label"
+            placeholder="Tipo"
             value={filterTipo}
-            onChange={(value) => {
-              setFilterTipo(value);
-              setCurrentPage(1);
-            }}
+            onChange={(value) => { setFilterTipo(value); setCurrentPage(1); }}
             className="filter-select-sm"
             allowClear
-          >
-            {TIPOS_OPOSICION.map(t => (
-              <Option key={t} value={t}>{t}</Option>
-            ))}
-          </Select>
+            options={TIPOS_OPOSICION.map(t => ({ value: t, label: t }))}
+          />
 
           <RangePicker
             placeholder={['Fecha inicio', 'Fecha fin']}
@@ -1248,22 +1193,22 @@ const AdminOposiciones: React.FC = () => {
             label="Provincia"
             rules={[{ required: true, message: 'Seleccione una provincia' }]}
           >
-            <Select showSearch placeholder="Seleccionar provincia">
-              {provincias.map(p => (
-                <Option key={p.id} value={p.id}>{p.nombre}</Option>
-              ))}
-            </Select>
+            <Select
+              showSearch
+              optionFilterProp="label"
+              placeholder="Seleccionar provincia"
+              options={provincias.map(p => ({ value: p.id, label: p.nombre }))}
+            />
           </Form.Item>
 
-          <Form.Item
-            name="municipio_id"
-            label="Municipio"
-          >
-            <Select showSearch placeholder="Seleccionar municipio" allowClear>
-              {municipios.map(m => (
-                <Option key={m.id} value={m.id}>{m.nombre}</Option>
-              ))}
-            </Select>
+          <Form.Item name="municipio_id" label="Municipio">
+            <Select
+              showSearch
+              allowClear
+              optionFilterProp="label"
+              placeholder="Seleccionar municipio"
+              options={municipios.map(m => ({ value: m.id, label: m.nombre }))}
+            />
           </Form.Item>
 
           <Form.Item
@@ -1271,11 +1216,12 @@ const AdminOposiciones: React.FC = () => {
             label="Categoría"
             rules={[{ required: true, message: 'Seleccione una categoría' }]}
           >
-            <Select showSearch placeholder="Seleccionar categoría">
-              {categorias.map(c => (
-                <Option key={c.id} value={c.id}>{c.nombre}</Option>
-              ))}
-            </Select>
+            <Select
+              showSearch
+              optionFilterProp="label"
+              placeholder="Seleccionar categoría"
+              options={categorias.map(c => ({ value: c.id, label: c.nombre }))}
+            />
           </Form.Item>
 
           <Form.Item
@@ -1306,11 +1252,7 @@ const AdminOposiciones: React.FC = () => {
             label="Tipo"
             rules={[{ required: true, message: 'Seleccione el tipo' }]}
           >
-            <Select showSearch>
-              {TIPOS_OPOSICION.map(tipo => (
-                <Option key={tipo} value={tipo}>{tipo}</Option>
-              ))}
-            </Select>
+            <Select showSearch optionFilterProp="label" options={TIPOS_OPOSICION.map(t => ({ value: t, label: t }))} />
           </Form.Item>
 
           <Form.Item
@@ -1318,11 +1260,7 @@ const AdminOposiciones: React.FC = () => {
             label="Estado"
             rules={[{ required: true, message: 'Seleccione el estado' }]}
           >
-            <Select showSearch>
-              {ESTADOS_OPOSICION.map(estado => (
-                <Option key={estado} value={estado}>{estado}</Option>
-              ))}
-            </Select>
+            <Select showSearch optionFilterProp="label" options={ESTADOS_OPOSICION.map(e => ({ value: e, label: e }))} />
           </Form.Item>
 
           <Form.Item
@@ -1392,6 +1330,7 @@ const AdminOposiciones: React.FC = () => {
               onChange={(e) => setNewItemName(e.target.value)}
               placeholder="Ingrese el nombre"
               onPressEnter={handleAddProvincia}
+              style={{ background: '#fff', color: '#1a2332', borderColor: '#d9d9d9' }}
             />
           </Form.Item>
         </Form>
@@ -1412,6 +1351,7 @@ const AdminOposiciones: React.FC = () => {
               onChange={(e) => setNewItemName(e.target.value)}
               placeholder="Ingrese el nombre"
               onPressEnter={handleAddMunicipio}
+              style={{ background: '#fff', color: '#1a2332', borderColor: '#d9d9d9' }}
             />
           </Form.Item>
         </Form>
@@ -1432,6 +1372,7 @@ const AdminOposiciones: React.FC = () => {
               onChange={(e) => setNewItemName(e.target.value)}
               placeholder="Ingrese el nombre"
               onPressEnter={handleAddCategoria}
+              style={{ background: '#fff', color: '#1a2332', borderColor: '#d9d9d9' }}
             />
           </Form.Item>
         </Form>

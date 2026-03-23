@@ -319,6 +319,25 @@
   color: #1a2332 !important;
 }
 
+/* Inputs blancos dentro de todos los modales admin */
+.admin-modal input.ant-input,
+.admin-modal .ant-input-affix-wrapper input,
+.admin-modal textarea.ant-input {
+  background: #ffffff !important;
+  color: #1a2332 !important;
+  border-color: #d9d9d9 !important;
+}
+
+.admin-modal .ant-input-affix-wrapper,
+.admin-modal .ant-input-outlined {
+  background: #ffffff !important;
+  color: #1a2332 !important;
+}
+
+.admin-modal .ant-form-item-label > label {
+  color: #1a2332 !important;
+}
+
 .admin-modal .ant-btn-primary {
   background: linear-gradient(135deg, #5BE4EB 0%, #3ABBC2 100%);
   border: none;
