@@ -18,7 +18,7 @@ const { Panel } = Collapse;
 const { TextArea } = Input;
 
 const Revisiones: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [revisiones, setRevisiones] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -61,8 +61,11 @@ const Revisiones: React.FC = () => {
     setActionLoading(true);
     try {
       await revisionesService.aprobar(
-        parseInt(user?.profesor_id || '0'),
-        parseInt(id)
+        isAdmin ? null : parseInt(user?.profesor_id || '0'),
+        parseInt(id),
+        '',
+        user?.rol || 'PROFESOR',
+        isAdmin ? parseInt(user?.id || '0') : null
       );
       setRevisiones(prev =>
         prev.map(r => r.id === id ? { ...r, estado: 'aprobado' as const } : r)
@@ -89,9 +92,11 @@ const Revisiones: React.FC = () => {
     setActionLoading(true);
     try {
       await revisionesService.solicitarCorreccion(
-        parseInt(user?.profesor_id || '0'),
+        isAdmin ? null : parseInt(user?.profesor_id || '0'),
         parseInt(selectedRevision || '0'),
-        correccionText
+        correccionText,
+        user?.rol || 'PROFESOR',
+        isAdmin ? parseInt(user?.id || '0') : null
       );
       setRevisiones(prev =>
         prev.map(r => r.id === selectedRevision ? { ...r, estado: 'corregir' as const } : r)

@@ -36,7 +36,9 @@ import {
   CalendarOutlined,
   FileAddOutlined,
   UploadOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  FolderOpenOutlined,
+  SolutionOutlined
 } from '@ant-design/icons';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import type { InputRef } from 'antd';
@@ -111,6 +113,26 @@ const AdminOposiciones: React.FC = () => {
   const [uploadingRecurso, setUploadingRecurso] = useState(false);
   const [recursoType, setRecursoType] = useState<'file' | 'url' | 'relacion'>('file');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  // Ver recursos modal
+  const [recursoViewModal, setRecursoViewModal] = useState(false);
+  const [recursoViewList, setRecursoViewList] = useState<any[]>([]);
+  const [recursoViewLoading, setRecursoViewLoading] = useState(false);
+  const [recursoViewTitulo, setRecursoViewTitulo] = useState('');
+
+  const openRecursoView = async (record: OposicionAdmin) => {
+    setRecursoViewTitulo(record.titulo);
+    setRecursoViewModal(true);
+    setRecursoViewLoading(true);
+    try {
+      const data = await recursosService.getRecursosByOposicion(record.id);
+      setRecursoViewList(data);
+    } catch {
+      message.error('Error al cargar los recursos');
+    } finally {
+      setRecursoViewLoading(false);
+    }
+  };
 
   const inputRef = useRef<InputRef>(null);
 
@@ -200,19 +222,19 @@ const AdminOposiciones: React.FC = () => {
       const updatePayload = isProfesor
         ? { id, url_bases_oficiales: editedRow.url_bases_oficiales }
         : {
-            id,
-            titulo: editedRow.titulo,
-            categoria: editedRow.categoria_id,
-            provincia_id: editedRow.provincia_id,
-            municipio_id: editedRow.municipio_id,
-            tipo: editedRow.tipo,
-            estado: editedRow.estado,
-            num_plazas: editedRow.num_plazas,
-            url_bases_oficiales: editedRow.url_bases_oficiales,
-            fecha_convocatoria: editedRow.fecha_convocatoria,
-            fecha_fin: editedRow.fecha_fin,
-            observaciones: editedRow.observaciones
-          };
+          id,
+          titulo: editedRow.titulo,
+          categoria: editedRow.categoria_id,
+          provincia_id: editedRow.provincia_id,
+          municipio_id: editedRow.municipio_id,
+          tipo: editedRow.tipo,
+          estado: editedRow.estado,
+          num_plazas: editedRow.num_plazas,
+          url_bases_oficiales: editedRow.url_bases_oficiales,
+          fecha_convocatoria: editedRow.fecha_convocatoria,
+          fecha_fin: editedRow.fecha_fin,
+          observaciones: editedRow.observaciones
+        };
       await oposicionesService.updateOposicion(updatePayload);
 
       message.success('Oposición actualizada correctamente');
@@ -747,7 +769,7 @@ const AdminOposiciones: React.FC = () => {
     {
       title: 'Acciones',
       key: 'actions',
-      width: 530,
+      width: 210,
       render: (_, record) => {
         if (editingKey === record.id) {
           return (
@@ -775,6 +797,15 @@ const AdminOposiciones: React.FC = () => {
         }
         return (
           <Space size={4}>
+            <Tooltip title="Ver recursos de esta oposición">
+              <Button
+                type="text"
+                icon={<FolderOpenOutlined />}
+                onClick={() => openRecursoView(record)}
+                className="edit-btn"
+              />
+
+            </Tooltip>
             <Tooltip title={isProfesor ? "Editar URL de bases oficiales" : "Modifica los campos disponibles"}>
               <Button
                 type="text"
@@ -782,9 +813,8 @@ const AdminOposiciones: React.FC = () => {
                 onClick={() => startEditing(record)}
                 disabled={editingKey !== null}
                 className="edit-btn"
-              >
-                Editar
-              </Button>
+              />
+
             </Tooltip>
             <Tooltip title="Agregar todos los archivos correspondientes a esta convocatoria">
               <Button
@@ -793,13 +823,12 @@ const AdminOposiciones: React.FC = () => {
                 onClick={() => openRecursoModal(record.id)}
                 disabled={editingKey !== null}
                 className="edit-btn"
-              >
-                Aregar archivo
-              </Button>
+              />
             </Tooltip>
+            <Tooltip title="Solicitar temario oficial para esta oposición">
               <Button
                 type="text"
-                icon={<FileAddOutlined />}
+                icon={<SolutionOutlined />}
                 onClick={() => {
                   Modal.confirm({
                     title: '¿Solicitar temario?',
@@ -811,9 +840,9 @@ const AdminOposiciones: React.FC = () => {
                 }}
                 disabled={editingKey !== null}
                 className="edit-btn"
-              >
-               Solicitar Temario
-              </Button>
+              />
+            </Tooltip>
+
           </Space>
         );
       }
@@ -838,545 +867,594 @@ const AdminOposiciones: React.FC = () => {
             children: (
               <>
                 <div className="admin-header">
-        <div className="header-content">
-          <Title level={2} className="admin-title">
-            Gestión de Oposiciones
-          </Title>
-          <Text type="secondary" className="admin-subtitle">
-            Administra y edita las oposiciones del sistema
-          </Text>
-        </div>
-        <div className="header-stats">
-          <Card size="small" className="stat-card">
-            <Text type="secondary">Total</Text>
-            <Title level={3}>{total}</Title>
-          </Card>
-          <Card size="small" className="stat-card">
-            <Text type="secondary">Página</Text>
-            <Title level={3}>{currentPage}</Title>
-          </Card>
-        </div>
-      </div>
+                  <div className="header-content">
+                    <Title level={2} className="admin-title">
+                      Gestión de Oposiciones
+                    </Title>
+                    <Text type="secondary" className="admin-subtitle">
+                      Administra y edita las oposiciones del sistema
+                    </Text>
+                  </div>
+                  <div className="header-stats">
+                    <Card size="small" className="stat-card">
+                      <Text type="secondary">Total</Text>
+                      <Title level={3}>{total}</Title>
+                    </Card>
+                    <Card size="small" className="stat-card">
+                      <Text type="secondary">Página</Text>
+                      <Title level={3}>{currentPage}</Title>
+                    </Card>
+                  </div>
+                </div>
 
-      <Card className="filters-card">
-        <div className="filters-header">
-          <Space>
-            <FilterOutlined />
-            <Text strong>Filtros</Text>
-            {hasActiveFilters && (
-              <Badge count={[searchText, filterProvincia, filterMunicipio, filterCategoria, filterEstado, filterTipo, filterDateRange].filter(Boolean).length} />
-            )}
-          </Space>
-          <Space>
-            {!isProfesor && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => setAddOposicionModal(true)}
-              >
-                Nueva Oposición
-              </Button>
-            )}
-            <Button icon={<ReloadOutlined />} onClick={loadData} loading={loading}>
-              Recargar
-            </Button>
-            {hasActiveFilters && (
-              <Button onClick={clearFilters}>
-                Limpiar filtros
-              </Button>
-            )}
-          </Space>
-        </div>
+                <Card className="filters-card">
+                  <div className="filters-header">
+                    <Space>
+                      <FilterOutlined />
+                      <Text strong>Filtros</Text>
+                      {hasActiveFilters && (
+                        <Badge count={[searchText, filterProvincia, filterMunicipio, filterCategoria, filterEstado, filterTipo, filterDateRange].filter(Boolean).length} />
+                      )}
+                    </Space>
+                    <Space>
+                      {!isProfesor && (
+                        <Button
+                          type="primary"
+                          icon={<PlusOutlined />}
+                          onClick={() => setAddOposicionModal(true)}
+                        >
+                          Nueva Oposición
+                        </Button>
+                      )}
+                      <Button icon={<ReloadOutlined />} onClick={loadData} loading={loading}>
+                        Recargar
+                      </Button>
+                      {hasActiveFilters && (
+                        <Button onClick={clearFilters}>
+                          Limpiar filtros
+                        </Button>
+                      )}
+                    </Space>
+                  </div>
 
-        <div className="filters-content">
-          <Input
-            placeholder="Buscar por título, provincia, municipio..."
-            prefix={<SearchOutlined />}
-            value={searchText}
-            onChange={(e) => {
-              setSearchText(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="search-input"
-            allowClear
-          />
+                  <div className="filters-content">
+                    <Input
+                      placeholder="Buscar por título, provincia, municipio..."
+                      prefix={<SearchOutlined />}
+                      value={searchText}
+                      onChange={(e) => {
+                        setSearchText(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="search-input"
+                      allowClear
+                    />
 
-          <Select
-            showSearch
-            optionFilterProp="label"
-            placeholder="Provincia"
-            value={filterProvincia}
-            onChange={(value) => { setFilterProvincia(value); setCurrentPage(1); }}
-            className="filter-select-sm"
-            allowClear
-            options={provincias.map(p => ({ value: p.id, label: p.nombre }))}
-            // @ts-ignore
-            dropdownRender={(menu: React.ReactNode) => (
-              <>
-                {menu}
-                <Divider style={{ margin: '8px 0' }} />
-                <Button type="text" icon={<PlusOutlined />} onClick={() => { setNewItemName(''); setAddProvinciaModal(true); }} className="add-option-btn" style={{ width: '100%', textAlign: 'left' }}>Agregar</Button>
-              </>
-            )}
-          />
+                    <Select
+                      showSearch
+                      optionFilterProp="label"
+                      placeholder="Provincia"
+                      value={filterProvincia}
+                      onChange={(value) => { setFilterProvincia(value); setCurrentPage(1); }}
+                      className="filter-select-sm"
+                      allowClear
+                      options={provincias.map(p => ({ value: p.id, label: p.nombre }))}
+                      // @ts-ignore
+                      dropdownRender={(menu: React.ReactNode) => (
+                        <>
+                          {menu}
+                          <Divider style={{ margin: '8px 0' }} />
+                          <Button type="text" icon={<PlusOutlined />} onClick={() => { setNewItemName(''); setAddProvinciaModal(true); }} className="add-option-btn" style={{ width: '100%', textAlign: 'left' }}>Agregar</Button>
+                        </>
+                      )}
+                    />
 
-          <Select
-            showSearch
-            optionFilterProp="label"
-            placeholder="Municipio"
-            value={filterMunicipio}
-            onChange={(value) => { setFilterMunicipio(value); setCurrentPage(1); }}
-            className="filter-select-sm"
-            allowClear
-            options={municipios.map(m => ({ value: m.id, label: m.nombre }))}
-            // @ts-ignore
-            dropdownRender={(menu: React.ReactNode) => (
-              <>
-                {menu}
-                <Divider style={{ margin: '8px 0' }} />
-                <Button type="text" icon={<PlusOutlined />} onClick={() => { setNewItemName(''); setAddMunicipioModal(true); }} className="add-option-btn" style={{ width: '100%', textAlign: 'left' }}>Agregar</Button>
-              </>
-            )}
-          />
+                    <Select
+                      showSearch
+                      optionFilterProp="label"
+                      placeholder="Municipio"
+                      value={filterMunicipio}
+                      onChange={(value) => { setFilterMunicipio(value); setCurrentPage(1); }}
+                      className="filter-select-sm"
+                      allowClear
+                      options={municipios.map(m => ({ value: m.id, label: m.nombre }))}
+                      // @ts-ignore
+                      dropdownRender={(menu: React.ReactNode) => (
+                        <>
+                          {menu}
+                          <Divider style={{ margin: '8px 0' }} />
+                          <Button type="text" icon={<PlusOutlined />} onClick={() => { setNewItemName(''); setAddMunicipioModal(true); }} className="add-option-btn" style={{ width: '100%', textAlign: 'left' }}>Agregar</Button>
+                        </>
+                      )}
+                    />
 
-          <Select
-            showSearch
-            optionFilterProp="label"
-            placeholder="Categoría"
-            value={filterCategoria}
-            onChange={(value) => { setFilterCategoria(value); setCurrentPage(1); }}
-            className="filter-select-sm"
-            allowClear
-            options={categorias.map(c => ({ value: c.id, label: c.nombre }))}
-            // @ts-ignore
-            dropdownRender={(menu: React.ReactNode) => (
-              <>
-                {menu}
-                <Divider style={{ margin: '8px 0' }} />
-                <Button type="text" icon={<PlusOutlined />} onClick={() => { setNewItemName(''); setAddCategoriaModal(true); }} className="add-option-btn" style={{ width: '100%', textAlign: 'left' }}>Agregar</Button>
-              </>
-            )}
-          />
+                    <Select
+                      showSearch
+                      optionFilterProp="label"
+                      placeholder="Categoría"
+                      value={filterCategoria}
+                      onChange={(value) => { setFilterCategoria(value); setCurrentPage(1); }}
+                      className="filter-select-sm"
+                      allowClear
+                      options={categorias.map(c => ({ value: c.id, label: c.nombre }))}
+                      // @ts-ignore
+                      dropdownRender={(menu: React.ReactNode) => (
+                        <>
+                          {menu}
+                          <Divider style={{ margin: '8px 0' }} />
+                          <Button type="text" icon={<PlusOutlined />} onClick={() => { setNewItemName(''); setAddCategoriaModal(true); }} className="add-option-btn" style={{ width: '100%', textAlign: 'left' }}>Agregar</Button>
+                        </>
+                      )}
+                    />
 
-          <Select
-            showSearch
-            optionFilterProp="label"
-            placeholder="Estado"
-            value={filterEstado}
-            onChange={(value) => { setFilterEstado(value); setCurrentPage(1); }}
-            className="filter-select-sm"
-            allowClear
-            options={ESTADOS_OPOSICION.map(e => ({ value: e, label: e }))}
-          />
+                    <Select
+                      showSearch
+                      optionFilterProp="label"
+                      placeholder="Estado"
+                      value={filterEstado}
+                      onChange={(value) => { setFilterEstado(value); setCurrentPage(1); }}
+                      className="filter-select-sm"
+                      allowClear
+                      options={ESTADOS_OPOSICION.map(e => ({ value: e, label: e }))}
+                    />
 
-          <Select
-            showSearch
-            optionFilterProp="label"
-            placeholder="Tipo"
-            value={filterTipo}
-            onChange={(value) => { setFilterTipo(value); setCurrentPage(1); }}
-            className="filter-select-sm"
-            allowClear
-            options={TIPOS_OPOSICION.map(t => ({ value: t, label: t }))}
-          />
+                    <Select
+                      showSearch
+                      optionFilterProp="label"
+                      placeholder="Tipo"
+                      value={filterTipo}
+                      onChange={(value) => { setFilterTipo(value); setCurrentPage(1); }}
+                      className="filter-select-sm"
+                      allowClear
+                      options={TIPOS_OPOSICION.map(t => ({ value: t, label: t }))}
+                    />
 
-          <RangePicker
-            placeholder={['Fecha inicio', 'Fecha fin']}
-            value={filterDateRange}
-            onChange={(dates) => {
-              setFilterDateRange(dates);
-              setCurrentPage(1);
-            }}
-            format="DD/MM/YYYY"
-            className="date-range-picker"
-          />
-        </div>
-      </Card>
+                    <RangePicker
+                      placeholder={['Fecha inicio', 'Fecha fin']}
+                      value={filterDateRange}
+                      onChange={(dates) => {
+                        setFilterDateRange(dates);
+                        setCurrentPage(1);
+                      }}
+                      format="DD/MM/YYYY"
+                      className="date-range-picker"
+                    />
+                  </div>
+                </Card>
 
-      <Card className="table-card">
-        {loading ? (
-          <div className="loading-container">
-            <Spin size="large" tip="Cargando oposiciones..." />
-          </div>
-        ) : (
-          <Table
-            columns={columns}
-            dataSource={oposiciones}
-            rowKey="id"
-            pagination={{
-              current: currentPage,
-              pageSize: pageSize,
-              total: total,
-              showSizeChanger: true,
-              pageSizeOptions: ['10', '20', '50'],
-              showTotal: (total, range) => (
-                <Text type="secondary">
-                  {range[0]}-{range[1]} de {total} registros
-                </Text>
-              ),
-              onChange: (page, size) => {
-                setCurrentPage(page);
-                setPageSize(size || 10);
-              }
-            }}
-            onChange={handleTableChange}
-            scroll={{ x: 2000 }}
-            size="middle"
-            className="admin-table"
-            rowClassName={(record) =>
-              editingKey === record.id ? 'editing-row' : ''
-            }
-          />
-        )}
-      </Card>
+                <Card className="table-card">
+                  {loading ? (
+                    <div className="loading-container">
+                      <Spin size="large" tip="Cargando oposiciones..." />
+                    </div>
+                  ) : (
+                    <Table
+                      columns={columns}
+                      dataSource={oposiciones}
+                      rowKey="id"
+                      pagination={{
+                        current: currentPage,
+                        pageSize: pageSize,
+                        total: total,
+                        showSizeChanger: true,
+                        pageSizeOptions: ['10', '20', '50'],
+                        showTotal: (total, range) => (
+                          <Text type="secondary">
+                            {range[0]}-{range[1]} de {total} registros
+                          </Text>
+                        ),
+                        onChange: (page, size) => {
+                          setCurrentPage(page);
+                          setPageSize(size || 10);
+                        }
+                      }}
+                      onChange={handleTableChange}
+                      scroll={{ x: 2000 }}
+                      size="middle"
+                      className="admin-table"
+                      rowClassName={(record) =>
+                        editingKey === record.id ? 'editing-row' : ''
+                      }
+                    />
+                  )}
+                </Card>
 
-      {/* Modal para agregar recurso */}
-      <Modal
-        title="Agregar Recurso a Oposición"
-        open={addRecursoModal}
-        onCancel={() => {
-          setAddRecursoModal(false);
-          recursoForm.resetFields();
-          setFileList([]);
-          setSelectedOposicionId(null);
-        }}
-        footer={null}
-        width={600}
-        className="admin-modal"
-      >
-        <ConfigProvider
-          theme={{
-            algorithm: theme.defaultAlgorithm,
-            token: { colorBgContainer: '#ffffff', colorText: '#1a2332', colorTextPlaceholder: '#9ca3af', colorBorder: '#d1d5db', colorPrimary: '#5BE4EB' },
-            components: {
-              Input: { colorBgContainer: '#ffffff', colorText: '#1a2332' },
-              Select: { colorBgContainer: '#ffffff', optionSelectedBg: 'rgba(91, 228, 235, 0.15)' },
-            },
-          }}
-        >
-        <Form
-          form={recursoForm}
-          layout="vertical"
-          onFinish={handleAddRecurso}
-          className="modal-form-light"
-        >
-          {recursoType !== 'relacion' && (
-            <Form.Item
-              name="titulo"
-              label="Título del Recurso"
-              rules={[{ required: true, message: 'Ingrese el título del recurso' }]}
-            >
-              <Input placeholder="Ej: Temario oficial 2024" style={{ background: '#fff', color: '#1a2332' }} />
-            </Form.Item>
-          )}
+                {/* Modal para agregar recurso */}
+                <Modal
+                  title="Agregar Recurso a Oposición"
+                  open={addRecursoModal}
+                  onCancel={() => {
+                    setAddRecursoModal(false);
+                    recursoForm.resetFields();
+                    setFileList([]);
+                    setSelectedOposicionId(null);
+                  }}
+                  footer={null}
+                  width={600}
+                  className="admin-modal"
+                >
+                  <ConfigProvider
+                    theme={{
+                      algorithm: theme.defaultAlgorithm,
+                      token: { colorBgContainer: '#ffffff', colorText: '#1a2332', colorTextPlaceholder: '#9ca3af', colorBorder: '#d1d5db', colorPrimary: '#5BE4EB' },
+                      components: {
+                        Input: { colorBgContainer: '#ffffff', colorText: '#1a2332' },
+                        Select: { colorBgContainer: '#ffffff', optionSelectedBg: 'rgba(91, 228, 235, 0.15)' },
+                      },
+                    }}
+                  >
+                    <Form
+                      form={recursoForm}
+                      layout="vertical"
+                      onFinish={handleAddRecurso}
+                      className="modal-form-light"
+                    >
+                      {recursoType !== 'relacion' && (
+                        <Form.Item
+                          name="titulo"
+                          label="Título del Recurso"
+                          rules={[{ required: true, message: 'Ingrese el título del recurso' }]}
+                        >
+                          <Input placeholder="Ej: Temario oficial 2024" style={{ background: '#fff', color: '#1a2332' }} />
+                        </Form.Item>
+                      )}
 
-          <Form.Item label="Tipo de Recurso">
-            <Radio.Group
-              value={recursoType}
-              onChange={(e) => {
-                setRecursoType(e.target.value);
-                setFileList([]);
-                recursoForm.setFieldsValue({ url: undefined, titulo: undefined });
-              }}
-            >
-              <Radio.Button value="file">
-                <UploadOutlined /> Subir Archivo
-              </Radio.Button>
-              <Radio.Button value="url">
-                <LinkOutlined /> Enlace URL
-              </Radio.Button>
-              <Radio.Button value="relacion">
-                <FileTextOutlined /> Relación de Temario
-              </Radio.Button>
-            </Radio.Group>
-          </Form.Item>
+                      <Form.Item label="Tipo de Recurso">
+                        <Radio.Group
+                          value={recursoType}
+                          onChange={(e) => {
+                            setRecursoType(e.target.value);
+                            setFileList([]);
+                            recursoForm.setFieldsValue({ url: undefined, titulo: undefined });
+                          }}
+                        >
+                          <Radio.Button value="file">
+                            <UploadOutlined /> Subir Archivo
+                          </Radio.Button>
+                          <Radio.Button value="url">
+                            <LinkOutlined /> Enlace URL
+                          </Radio.Button>
+                          <Radio.Button value="relacion">
+                            <FileTextOutlined /> Relación de Temario
+                          </Radio.Button>
+                        </Radio.Group>
+                      </Form.Item>
 
-          {recursoType === 'relacion' ? (
-            <Form.Item label="Archivo PDF">
-              <Upload
-                beforeUpload={() => false}
-                fileList={fileList}
-                onChange={({ fileList }) => setFileList(fileList)}
-                accept=".pdf"
-                maxCount={1}
-              >
-                <Button icon={<UploadOutlined />}>Seleccionar PDF</Button>
-              </Upload>
-              <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
-                Solo se aceptan archivos PDF.
-              </Text>
-            </Form.Item>
-          ) : recursoType === 'file' ? (
-            <Form.Item label="Archivo">
-              <Upload
-                beforeUpload={() => false}
-                fileList={fileList}
-                onChange={({ fileList }) => setFileList(fileList)}
-                maxCount={1}
-              >
-                <Button icon={<UploadOutlined />}>Seleccionar Archivo</Button>
-              </Upload>
-              <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
-                Todos los formatos son aceptados.
-              </Text>
-            </Form.Item>
-          ) : (
-            <Form.Item
-              name="url"
-              label="URL del Recurso"
-              rules={[
-                { required: true, message: 'Ingrese la URL' },
-                { type: 'url', message: 'Ingrese una URL válida' }
-              ]}
-            >
-              <Input placeholder="https://ejemplo.com/recurso.pdf" style={{ background: '#fff', color: '#1a2332' }} />
-            </Form.Item>
-          )}
+                      {recursoType === 'relacion' ? (
+                        <Form.Item label="Archivo PDF">
+                          <Upload
+                            beforeUpload={() => false}
+                            fileList={fileList}
+                            onChange={({ fileList }) => setFileList(fileList)}
+                            accept=".pdf"
+                            maxCount={1}
+                          >
+                            <Button icon={<UploadOutlined />}>Seleccionar PDF</Button>
+                          </Upload>
+                          <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+                            Solo se aceptan archivos PDF.
+                          </Text>
+                        </Form.Item>
+                      ) : recursoType === 'file' ? (
+                        <Form.Item label="Archivo">
+                          <Upload
+                            beforeUpload={() => false}
+                            fileList={fileList}
+                            onChange={({ fileList }) => setFileList(fileList)}
+                            maxCount={1}
+                          >
+                            <Button icon={<UploadOutlined />}>Seleccionar Archivo</Button>
+                          </Upload>
+                          <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+                            Todos los formatos son aceptados.
+                          </Text>
+                        </Form.Item>
+                      ) : (
+                        <Form.Item
+                          name="url"
+                          label="URL del Recurso"
+                          rules={[
+                            { required: true, message: 'Ingrese la URL' },
+                            { type: 'url', message: 'Ingrese una URL válida' }
+                          ]}
+                        >
+                          <Input placeholder="https://ejemplo.com/recurso.pdf" style={{ background: '#fff', color: '#1a2332' }} />
+                        </Form.Item>
+                      )}
 
-          <Form.Item>
-            <Space style={{ float: 'right' }}>
-              <Button onClick={() => {
-                setAddRecursoModal(false);
-                recursoForm.resetFields();
-                setFileList([]);
-                setSelectedOposicionId(null);
-              }}>
-                Cancelar
-              </Button>
-              <Button type="primary" htmlType="submit" loading={uploadingRecurso}>
-                {recursoType === 'relacion' ? 'Cargar la relación de temario' : 'Agregar Recurso'}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-        </ConfigProvider>
-      </Modal>
+                      <Form.Item>
+                        <Space style={{ float: 'right' }}>
+                          <Button onClick={() => {
+                            setAddRecursoModal(false);
+                            recursoForm.resetFields();
+                            setFileList([]);
+                            setSelectedOposicionId(null);
+                          }}>
+                            Cancelar
+                          </Button>
+                          <Button type="primary" htmlType="submit" loading={uploadingRecurso}>
+                            {recursoType === 'relacion' ? 'Cargar la relación de temario' : 'Agregar Recurso'}
+                          </Button>
+                        </Space>
+                      </Form.Item>
+                    </Form>
+                  </ConfigProvider>
+                </Modal>
 
-      {/* Modal para crear oposición */}
-      <Modal
-        title="Crear Nueva Oposición"
-        open={addOposicionModal}
-        onCancel={() => {
-          setAddOposicionModal(false);
-          createForm.resetFields();
-        }}
-        footer={null}
-        width={700}
-        className="admin-modal"
-      >
-        <ConfigProvider
-          theme={{
-            algorithm: theme.defaultAlgorithm,
-            token: {
-              colorBgContainer: '#ffffff',
-              colorText: '#1a2332',
-              colorTextPlaceholder: '#9ca3af',
-              colorBorder: '#d1d5db',
-              colorPrimary: '#5BE4EB',
-            },
-            components: {
-              Input: { colorBgContainer: '#ffffff', colorText: '#1a2332' },
-              Select: { colorBgContainer: '#ffffff', optionSelectedBg: 'rgba(91, 228, 235, 0.15)' },
-              DatePicker: { colorBgContainer: '#ffffff' },
-              InputNumber: { colorBgContainer: '#ffffff' },
-            },
-          }}
-        >
-        <Form
-          form={createForm}
-          layout="vertical"
-          onFinish={handleCreateOposicion}
-          className="modal-form-light"
-        >
-          <Form.Item
-            name="provincia_id"
-            label="Provincia"
-            rules={[{ required: true, message: 'Seleccione una provincia' }]}
-          >
-            <Select
-              showSearch
-              optionFilterProp="label"
-              placeholder="Seleccionar provincia"
-              options={provincias.map(p => ({ value: p.id, label: p.nombre }))}
-            />
-          </Form.Item>
+                {/* Modal para crear oposición */}
+                <Modal
+                  title="Crear Nueva Oposición"
+                  open={addOposicionModal}
+                  onCancel={() => {
+                    setAddOposicionModal(false);
+                    createForm.resetFields();
+                  }}
+                  footer={null}
+                  width={700}
+                  className="admin-modal"
+                >
+                  <ConfigProvider
+                    theme={{
+                      algorithm: theme.defaultAlgorithm,
+                      token: {
+                        colorBgContainer: '#ffffff',
+                        colorText: '#1a2332',
+                        colorTextPlaceholder: '#9ca3af',
+                        colorBorder: '#d1d5db',
+                        colorPrimary: '#5BE4EB',
+                      },
+                      components: {
+                        Input: { colorBgContainer: '#ffffff', colorText: '#1a2332' },
+                        Select: { colorBgContainer: '#ffffff', optionSelectedBg: 'rgba(91, 228, 235, 0.15)' },
+                        DatePicker: { colorBgContainer: '#ffffff' },
+                        InputNumber: { colorBgContainer: '#ffffff' },
+                      },
+                    }}
+                  >
+                    <Form
+                      form={createForm}
+                      layout="vertical"
+                      onFinish={handleCreateOposicion}
+                      className="modal-form-light"
+                    >
+                      <Form.Item
+                        name="provincia_id"
+                        label="Provincia"
+                        rules={[{ required: true, message: 'Seleccione una provincia' }]}
+                      >
+                        <Select
+                          showSearch
+                          optionFilterProp="label"
+                          placeholder="Seleccionar provincia"
+                          options={provincias.map(p => ({ value: p.id, label: p.nombre }))}
+                        />
+                      </Form.Item>
 
-          <Form.Item name="municipio_id" label="Municipio">
-            <Select
-              showSearch
-              allowClear
-              optionFilterProp="label"
-              placeholder="Seleccionar municipio"
-              options={municipios.map(m => ({ value: m.id, label: m.nombre }))}
-            />
-          </Form.Item>
+                      <Form.Item name="municipio_id" label="Municipio">
+                        <Select
+                          showSearch
+                          allowClear
+                          optionFilterProp="label"
+                          placeholder="Seleccionar municipio"
+                          options={municipios.map(m => ({ value: m.id, label: m.nombre }))}
+                        />
+                      </Form.Item>
 
-          <Form.Item
-            name="categoria_id"
-            label="Categoría"
-            rules={[{ required: true, message: 'Seleccione una categoría' }]}
-          >
-            <Select
-              showSearch
-              optionFilterProp="label"
-              placeholder="Seleccionar categoría"
-              options={categorias.map(c => ({ value: c.id, label: c.nombre }))}
-            />
-          </Form.Item>
+                      <Form.Item
+                        name="categoria_id"
+                        label="Categoría"
+                        rules={[{ required: true, message: 'Seleccione una categoría' }]}
+                      >
+                        <Select
+                          showSearch
+                          optionFilterProp="label"
+                          placeholder="Seleccionar categoría"
+                          options={categorias.map(c => ({ value: c.id, label: c.nombre }))}
+                        />
+                      </Form.Item>
 
-          <Form.Item
-            name="convocante"
-            label="Convocante"
-            rules={[{ required: true, message: 'Ingrese el convocante' }]}
-          >
-            <Input placeholder="Ej: Ayuntamiento de Madrid" style={{ background: '#fff', color: '#1a2332' }} />
-          </Form.Item>
+                      <Form.Item
+                        name="convocante"
+                        label="Convocante"
+                        rules={[{ required: true, message: 'Ingrese el convocante' }]}
+                      >
+                        <Input placeholder="Ej: Ayuntamiento de Madrid" style={{ background: '#fff', color: '#1a2332' }} />
+                      </Form.Item>
 
-          <Form.Item
-            name="ccaa"
-            label="CCAA"
-          >
-            <Input placeholder="Comunidad Autónoma" style={{ background: '#fff', color: '#1a2332' }} />
-          </Form.Item>
+                      <Form.Item
+                        name="ccaa"
+                        label="CCAA"
+                      >
+                        <Input placeholder="Comunidad Autónoma" style={{ background: '#fff', color: '#1a2332' }} />
+                      </Form.Item>
 
-          <Form.Item
-            name="num_plazas"
-            label="Número de Plazas"
-            rules={[{ required: true, message: 'Ingrese el número de plazas' }]}
-          >
-            <InputNumber min={1} style={{ width: '100%' }} />
-          </Form.Item>
+                      <Form.Item
+                        name="num_plazas"
+                        label="Número de Plazas"
+                        rules={[{ required: true, message: 'Ingrese el número de plazas' }]}
+                      >
+                        <InputNumber min={1} style={{ width: '100%' }} />
+                      </Form.Item>
 
-          <Form.Item
-            name="tipo"
-            label="Tipo"
-            rules={[{ required: true, message: 'Seleccione el tipo' }]}
-          >
-            <Select showSearch optionFilterProp="label" options={TIPOS_OPOSICION.map(t => ({ value: t, label: t }))} />
-          </Form.Item>
+                      <Form.Item
+                        name="tipo"
+                        label="Tipo"
+                        rules={[{ required: true, message: 'Seleccione el tipo' }]}
+                      >
+                        <Select showSearch optionFilterProp="label" options={TIPOS_OPOSICION.map(t => ({ value: t, label: t }))} />
+                      </Form.Item>
 
-          <Form.Item
-            name="estado"
-            label="Estado"
-            rules={[{ required: true, message: 'Seleccione el estado' }]}
-          >
-            <Select showSearch optionFilterProp="label" options={ESTADOS_OPOSICION.map(e => ({ value: e, label: e }))} />
-          </Form.Item>
+                      <Form.Item
+                        name="estado"
+                        label="Estado"
+                        rules={[{ required: true, message: 'Seleccione el estado' }]}
+                      >
+                        <Select showSearch optionFilterProp="label" options={ESTADOS_OPOSICION.map(e => ({ value: e, label: e }))} />
+                      </Form.Item>
 
-          <Form.Item
-            name="url_bases_oficiales"
-            label="URL Bases Oficiales"
-            rules={[
-              { required: true, message: 'Ingrese la URL' },
-              { type: 'url', message: 'Ingrese una URL válida' }
-            ]}
-          >
-            <Input placeholder="https://..." style={{ background: '#fff', color: '#1a2332' }} />
-          </Form.Item>
+                      <Form.Item
+                        name="url_bases_oficiales"
+                        label="URL Bases Oficiales"
+                        rules={[
+                          { required: true, message: 'Ingrese la URL' },
+                          { type: 'url', message: 'Ingrese una URL válida' }
+                        ]}
+                      >
+                        <Input placeholder="https://..." style={{ background: '#fff', color: '#1a2332' }} />
+                      </Form.Item>
 
-          <Form.Item
-            name="fecha_convocatoria"
-            label="Fecha de Convocatoria"
-            rules={[{ required: true, message: 'Seleccione la fecha' }]}
-          >
-            <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
-          </Form.Item>
+                      <Form.Item
+                        name="fecha_convocatoria"
+                        label="Fecha de Convocatoria"
+                        rules={[{ required: true, message: 'Seleccione la fecha' }]}
+                      >
+                        <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
+                      </Form.Item>
 
-          <Form.Item
-            name="fecha_fin"
-            label="Fecha de Fin"
-          >
-            <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
-          </Form.Item>
+                      <Form.Item
+                        name="fecha_fin"
+                        label="Fecha de Fin"
+                      >
+                        <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
+                      </Form.Item>
 
-          <Form.Item
-            name="observaciones"
-            label="Observaciones"
-          >
-            <TextArea rows={3} placeholder="Observaciones adicionales..." style={{ background: '#fff', color: '#1a2332' }} />
-          </Form.Item>
+                      <Form.Item
+                        name="observaciones"
+                        label="Observaciones"
+                      >
+                        <TextArea rows={3} placeholder="Observaciones adicionales..." style={{ background: '#fff', color: '#1a2332' }} />
+                      </Form.Item>
 
-          <Form.Item>
-            <Space style={{ float: 'right' }}>
-              <Button onClick={() => {
-                setAddOposicionModal(false);
-                createForm.resetFields();
-              }}>
-                Cancelar
-              </Button>
-              <Button type="primary" htmlType="submit" loading={creatingOposicion}>
-                Crear Oposición
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-        </ConfigProvider>
-      </Modal>
+                      <Form.Item>
+                        <Space style={{ float: 'right' }}>
+                          <Button onClick={() => {
+                            setAddOposicionModal(false);
+                            createForm.resetFields();
+                          }}>
+                            Cancelar
+                          </Button>
+                          <Button type="primary" htmlType="submit" loading={creatingOposicion}>
+                            Crear Oposición
+                          </Button>
+                        </Space>
+                      </Form.Item>
+                    </Form>
+                  </ConfigProvider>
+                </Modal>
 
-      {/* Modales de provincia, municipio y categoría (sin cambios) */}
-      <Modal
-        title="Agregar Nueva Provincia"
-        open={addProvinciaModal}
-        onOk={handleAddProvincia}
-        onCancel={() => { setAddProvinciaModal(false); setNewItemName(''); }}
-        confirmLoading={addingItem}
-        className="admin-modal"
-      >
-        <Form layout="vertical">
-          <Form.Item label="Nombre de la provincia">
-            <Input
-              ref={inputRef}
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              placeholder="Ingrese el nombre"
-              onPressEnter={handleAddProvincia}
-              style={{ background: '#fff', color: '#1a2332', borderColor: '#d9d9d9' }}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
+                {/* Modales de provincia, municipio y categoría (sin cambios) */}
+                {/* Modal ver recursos */}
+                <Modal
+                  title={`Recursos — ${recursoViewTitulo}`}
+                  open={recursoViewModal}
+                  onCancel={() => { setRecursoViewModal(false); setRecursoViewList([]); }}
+                  footer={null}
+                  width={700}
+                  className="admin-modal"
+                >
+                  {recursoViewLoading ? (
+                    <div style={{ textAlign: 'center', padding: 32 }}><Spin /></div>
+                  ) : recursoViewList.length === 0 ? (
+                    <Text style={{ color: '#64748b' }}>No hay recursos para esta oposición.</Text>
+                  ) : (
+                    <Table
+                      dataSource={recursoViewList}
+                      rowKey={(r, i) => String(i)}
+                      pagination={false}
+                      size="small"
+                      columns={[
+                        {
+                          title: 'Título',
+                          dataIndex: 'titulo',
+                          key: 'titulo',
+                          ellipsis: true,
+                        },
+                        {
+                          title: 'Tipo',
+                          dataIndex: 'tipo',
+                          key: 'tipo',
+                          width: 100,
+                          render: (tipo) => <Tag>{tipo}</Tag>,
+                        },
+                        {
+                          title: 'Enlace',
+                          dataIndex: 'url',
+                          key: 'url',
+                          width: 90,
+                          render: (url) => url ? (
+                            <Button type="link" icon={<LinkOutlined />} href={url} target="_blank" size="small">
+                              Abrir
+                            </Button>
+                          ) : '—',
+                        },
+                      ]}
+                    />
+                  )}
+                </Modal>
 
-      <Modal
-        title="Agregar Nuevo Municipio"
-        open={addMunicipioModal}
-        onOk={handleAddMunicipio}
-        onCancel={() => { setAddMunicipioModal(false); setNewItemName(''); }}
-        confirmLoading={addingItem}
-        className="admin-modal"
-      >
-        <Form layout="vertical">
-          <Form.Item label="Nombre del municipio">
-            <Input
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              placeholder="Ingrese el nombre"
-              onPressEnter={handleAddMunicipio}
-              style={{ background: '#fff', color: '#1a2332', borderColor: '#d9d9d9' }}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
+                <Modal
+                  title="Agregar Nueva Provincia"
+                  open={addProvinciaModal}
+                  onOk={handleAddProvincia}
+                  onCancel={() => { setAddProvinciaModal(false); setNewItemName(''); }}
+                  confirmLoading={addingItem}
+                  className="admin-modal"
+                >
+                  <Form layout="vertical">
+                    <Form.Item label="Nombre de la provincia">
+                      <Input
+                        ref={inputRef}
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
+                        placeholder="Ingrese el nombre"
+                        onPressEnter={handleAddProvincia}
+                        style={{ background: '#fff', color: '#1a2332', borderColor: '#d9d9d9' }}
+                      />
+                    </Form.Item>
+                  </Form>
+                </Modal>
 
-      <Modal
-        title="Agregar Nueva Categoría"
-        open={addCategoriaModal}
-        onOk={handleAddCategoria}
-        onCancel={() => { setAddCategoriaModal(false); setNewItemName(''); }}
-        confirmLoading={addingItem}
-        className="admin-modal"
-      >
-        <Form layout="vertical">
-          <Form.Item label="Nombre de la categoría">
-            <Input
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              placeholder="Ingrese el nombre"
-              onPressEnter={handleAddCategoria}
-              style={{ background: '#fff', color: '#1a2332', borderColor: '#d9d9d9' }}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
+                <Modal
+                  title="Agregar Nuevo Municipio"
+                  open={addMunicipioModal}
+                  onOk={handleAddMunicipio}
+                  onCancel={() => { setAddMunicipioModal(false); setNewItemName(''); }}
+                  confirmLoading={addingItem}
+                  className="admin-modal"
+                >
+                  <Form layout="vertical">
+                    <Form.Item label="Nombre del municipio">
+                      <Input
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
+                        placeholder="Ingrese el nombre"
+                        onPressEnter={handleAddMunicipio}
+                        style={{ background: '#fff', color: '#1a2332', borderColor: '#d9d9d9' }}
+                      />
+                    </Form.Item>
+                  </Form>
+                </Modal>
+
+                <Modal
+                  title="Agregar Nueva Categoría"
+                  open={addCategoriaModal}
+                  onOk={handleAddCategoria}
+                  onCancel={() => { setAddCategoriaModal(false); setNewItemName(''); }}
+                  confirmLoading={addingItem}
+                  className="admin-modal"
+                >
+                  <Form layout="vertical">
+                    <Form.Item label="Nombre de la categoría">
+                      <Input
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
+                        placeholder="Ingrese el nombre"
+                        onPressEnter={handleAddCategoria}
+                        style={{ background: '#fff', color: '#1a2332', borderColor: '#d9d9d9' }}
+                      />
+                    </Form.Item>
+                  </Form>
+                </Modal>
 
               </>
             ),

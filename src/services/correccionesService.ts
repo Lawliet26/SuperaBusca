@@ -18,10 +18,12 @@ export interface CorreccionGrupo {
 }
 
 interface TemarioDecisionPayload {
-  profesor_id: number;
+  profesor_id?: number | null;
+  usuario_id?: number | null;
   temario_id: number;
   accion: 'APROBADO' | 'RECHAZADO';
   comentarios: string;
+  rol: string;
 }
 
 export const correccionesService = {
@@ -58,22 +60,26 @@ export const correccionesService = {
   },
 
   // Aprobar corrección
-  async aprobar(profesorId: number, temarioId: number, comentarios: string = ''): Promise<void> {
+  async aprobar(profesorId: number | null, temarioId: number, comentarios: string = '', rol: string, usuarioId?: number | null): Promise<void> {
     return this.enviarDecision({
-      profesor_id: profesorId,
+      profesor_id: profesorId || null,
+      usuario_id: usuarioId || null,
       temario_id: temarioId,
       accion: 'APROBAR',
-      comentarios
+      comentarios,
+      rol
     });
   },
 
   // Rechazar corrección
-  async rechazar(profesorId: number, temarioId: number, comentarios: string = ''): Promise<void> {
+  async rechazar(profesorId: number | null, temarioId: number, comentarios: string = '', rol: string, usuarioId?: number | null): Promise<void> {
     return this.enviarDecision({
-      profesor_id: profesorId,
+      profesor_id: profesorId || null,
+      usuario_id: usuarioId || null,
       temario_id: temarioId,
       accion: 'RECHAZAR',
-      comentarios
+      comentarios,
+      rol
     });
   }
 };

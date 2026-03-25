@@ -18,10 +18,12 @@ export interface RevisionGrupo {
 }
 
 interface TemarioDecisionPayload {
-  profesor_id: number;
+  profesor_id?: number | null;
+  usuario_id?: number | null;
   temario_id: number;
   accion: 'APROBADO' | 'CORRECCION';
   comentarios: string;
+  rol: string;
 }
 
 interface DetalleMapeoAPI {
@@ -78,22 +80,26 @@ export const revisionesService = {
   },
 
   // Aprobar revisión
-  async aprobar(profesorId: number, temarioId: number, comentarios: string = ''): Promise<void> {
+  async aprobar(profesorId: number | null, temarioId: number, comentarios: string = '', rol: string, usuarioId?: number | null): Promise<void> {
     return this.enviarDecision({
-      profesor_id: profesorId,
+      profesor_id: profesorId || null,
+      usuario_id: usuarioId || null,
       temario_id: temarioId,
       accion: 'APROBAR',
-      comentarios
+      comentarios,
+      rol
     });
   },
 
   // Solicitar corrección
-  async solicitarCorreccion(profesorId: number, temarioId: number, comentarios: string): Promise<void> {
+  async solicitarCorreccion(profesorId: number | null, temarioId: number, comentarios: string, rol: string, usuarioId?: number | null): Promise<void> {
     return this.enviarDecision({
-      profesor_id: profesorId,
+      profesor_id: profesorId || null,
+      usuario_id: usuarioId || null,
       temario_id: temarioId,
       accion: 'CORRECCION',
-      comentarios
+      comentarios,
+      rol
     });
   }
 };

@@ -149,9 +149,9 @@ export const OposicionDetailModal = ({
       className="oposicion-detail-modal"
       closeIcon={<X />}
     >
-      <div >
+      <div style={{ padding: '24px' }}>
         {/* Header */}
-        <div className="detail-modal-header">
+        <div className="detail-modal-header" style={{ padding: 0 }}>
           <div className="header-tags">
             <Tag color={getEstadoColor(oposicion.estado)}>
               {getEstadoLabel(oposicion.estado)}

@@ -23,14 +23,12 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
   const { user, logout, isProfesor, isAdmin } = useAuth();
 
-  // Menú items - Revisiones y Correcciones solo visibles para profesores
   const menuItems = [
     { key: 'oposiciones', label: 'Oposiciones', icon: <BookOutlined />, visible: true },
-    { key: 'revisiones', label: 'Revisiones', icon: <FileSearchOutlined />, visible: isProfesor },
-    { key: 'correcciones', label: 'Correcciones', icon: <EditOutlined />, visible: isProfesor },
+    { key: 'revisiones', label: 'Revisiones', icon: <FileSearchOutlined />, visible: isProfesor || isAdmin },
+    { key: 'correcciones', label: 'Correcciones', icon: <EditOutlined />, visible: isProfesor || isAdmin },
     { key: 'misconvocatorias', label: 'Mis Convocatorias', icon: <SnippetsOutlined />, visible: true },
     { key: 'admin', label: 'Administrador', icon: <EditOutlined />, visible: isAdmin || isProfesor },
-
   ].filter(item => item.visible);
 
   const userMenuItems: MenuProps['items'] = [

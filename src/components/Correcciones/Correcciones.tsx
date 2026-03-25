@@ -18,7 +18,7 @@ import './Correcciones.css';
 const { Panel } = Collapse;
 
 const Correcciones: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [correcciones, setCorrecciones] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -57,8 +57,11 @@ const Correcciones: React.FC = () => {
     setActionLoading(true);
     try {
       await correccionesService.aprobar(
-        parseInt(user?.profesor_id || '0'),
-        parseInt(id)
+        isAdmin ? null : parseInt(user?.profesor_id || '0'),
+        parseInt(id),
+        '',
+        user?.rol || 'PROFESOR',
+        isAdmin ? parseInt(user?.id || '0') : null
       );
       setCorrecciones(prev =>
         prev.map(c => c.id === id ? { ...c, estado: 'aprobado' as const } : c)
@@ -75,8 +78,11 @@ const Correcciones: React.FC = () => {
     setActionLoading(true);
     try {
       await correccionesService.rechazar(
-        parseInt(user?.profesor_id || '0'),
-        parseInt(id)
+        isAdmin ? null : parseInt(user?.profesor_id || '0'),
+        parseInt(id),
+        '',
+        user?.rol || 'PROFESOR',
+        isAdmin ? parseInt(user?.id || '0') : null
       );
       setCorrecciones(prev =>
         prev.map(c => c.id === id ? { ...c, estado: 'rechazado' as const } : c)
