@@ -12,6 +12,7 @@ export const TemaTable = ({ temas }: TemaTableProps) => {
       <table className="temas-table">
         <thead>
           <tr>
+            <th style={{ width: 48, textAlign: 'center' }}>#</th>
             <th>Tema de la Oposición</th>
             <th>Recursos de la Academia</th>
           </tr>
@@ -19,6 +20,9 @@ export const TemaTable = ({ temas }: TemaTableProps) => {
         <tbody>
           {temas.map((tema, index) => (
             <tr key={index}>
+              <td data-label="#" style={{ textAlign: 'center', color: '#5BE4EB', fontWeight: 600, fontSize: 14 }}>
+                {index + 1}
+              </td>
               <td data-label="Tema de la Oposición">
                 <span className="tema-titulo">{tema.titulo_tema_oposicion}</span>
               </td>
