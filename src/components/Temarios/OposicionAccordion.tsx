@@ -11,6 +11,9 @@ interface OposicionAccordionProps {
   oposiciones: OposicionData[];
 }
 
+// ACCORDION_DISABLED: inhabilitar el dropdown hasta nuevo aviso — solo el botón "Ver Recursos" permanece activo
+const ACCORDION_DISABLED = true;
+
 export const OposicionAccordion = ({ oposiciones }: OposicionAccordionProps) => {
   const [openId, setOpenId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -32,8 +35,8 @@ export const OposicionAccordion = ({ oposiciones }: OposicionAccordionProps) => 
         {Array.isArray(oposiciones) &&
           oposiciones.length > 0 &&
           oposiciones.map((oposicion, index) => {
-            const isOpen = openId === oposicion.id_oposicion;
-            const isDisabled = oposicion.manual === true;
+            const isOpen = !ACCORDION_DISABLED && openId === oposicion.id_oposicion;
+            const isDisabled = ACCORDION_DISABLED || oposicion.manual === true;
 
             return (
               <motion.div
@@ -61,7 +64,7 @@ export const OposicionAccordion = ({ oposiciones }: OposicionAccordionProps) => 
                         </span>
                       </div>
                     </div>
-                    <ChevronDown className="oposicion-chevron" />
+                    {/* <ChevronDown className="oposicion-chevron" /> */}
                   </button>
 
                   <Button
