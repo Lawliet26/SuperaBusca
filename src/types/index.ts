@@ -11,6 +11,7 @@ export interface Oposicion {
   plazas: number;
   estado: 'abierta' | 'cerrada' | 'en curso';
   urlBasesOficiales?: string;
+  urlConvocatoria?: string;
   tieneTemarioListo?: boolean;
   tipo?: string;
   nombre_municipio?: string;
@@ -62,6 +63,7 @@ export interface OposicionAdmin {
   total_estudiantes?: number;
   num_plazas: number;
   url_bases_oficiales: string;
+  url_convocatoria?: string;
   fecha_convocatoria: string;
   tiene_temario_listo: boolean;
   provincia_id: number;

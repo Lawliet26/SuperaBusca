@@ -6,6 +6,7 @@ interface OposicionAPI {
   titulo: string;
   num_plazas: number;
   url_bases_oficiales: string;
+  url_convocatoria?: string;
   fecha_convocatoria: string;
   tiene_temario_listo: boolean;
   provincia_id: number;
@@ -40,6 +41,7 @@ interface UpdateOposicionPayload {
   estado?: string;
   num_plazas?: number;
   url_bases_oficiales?: string;
+  url_convocatoria?: string;
   fecha_convocatoria?: string;
   fecha_fin?: string;
   observaciones?: string;
@@ -51,6 +53,7 @@ interface CreateOposicionPayload {
   ccaa?: string;
   num_plazas: number;
   url_bases_oficiales: string;
+  url_convocatoria?: string;
   fecha_convocatoria: string;
   tipo: string;
   provincia_id: number;
@@ -154,6 +157,7 @@ export const oposicionesService = {
         titulo: item.titulo,
         num_plazas: item.num_plazas,
         url_bases_oficiales: item.url_bases_oficiales,
+        url_convocatoria: item.url_convocatoria,
         fecha_convocatoria: item.fecha_convocatoria,
         tiene_temario_listo: item.tiene_temario_listo,
         provincia_id: item.provincia_id,

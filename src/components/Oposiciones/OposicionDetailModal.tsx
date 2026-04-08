@@ -226,11 +226,22 @@ export const OposicionDetailModal = ({
               <div className="info-item-detail">
                 <LinkOutlined className="info-icon" />
                 <div>
-                  <span className="info-label">Oficiables</span>
+                  <span className="info-label">Oficiales</span>
                   <span className="info-value">Información de oposición</span>
                 </div>
               </div>
             </a>
+            {oposicion.urlConvocatoria && (
+              <a className="info-value" href={oposicion.urlConvocatoria} target="_blank" rel="noopener noreferrer">
+                <div className="info-item-detail">
+                  <LinkOutlined className="info-icon" />
+                  <div>
+                    <span className="info-label">Convocatoria</span>
+                    <span className="info-value">Ver convocatoria</span>
+                  </div>
+                </div>
+              </a>
+            )}
           </div>
         </div>
 

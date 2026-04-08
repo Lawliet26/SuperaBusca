@@ -89,6 +89,7 @@ const Oposiciones: React.FC = () => {
         plazas: item.num_plazas,
         estado: item.estado === 'Abierta' ? 'abierta' : item.estado === 'Cerrada' ? 'cerrada' : 'en curso',
         urlBasesOficiales: item.url_bases_oficiales,
+        urlConvocatoria: item.url_convocatoria,
         tieneTemarioListo: item.tiene_temario_listo,
         tipo: item.tipo
       }));

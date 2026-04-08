@@ -179,6 +179,8 @@ const AdminOposiciones: React.FC = () => {
       };
 
       const result = await oposicionesService.getOposicionesAdmin(filters);
+      console.log(result);
+      
       setOposiciones([...result.data].sort((a, b) => b.id - a.id));
       setTotal(result.total);
     } catch (error) {
@@ -231,6 +233,7 @@ const AdminOposiciones: React.FC = () => {
           estado: editedRow.estado,
           num_plazas: editedRow.num_plazas,
           url_bases_oficiales: editedRow.url_bases_oficiales,
+          url_convocatoria: editedRow.url_convocatoria,
           fecha_convocatoria: editedRow.fecha_convocatoria,
           fecha_fin: editedRow.fecha_fin,
           observaciones: editedRow.observaciones
@@ -265,6 +268,7 @@ const AdminOposiciones: React.FC = () => {
         ccaa: values.ccaa,
         num_plazas: values.num_plazas,
         url_bases_oficiales: values.url_bases_oficiales,
+        url_convocatoria: values.url_convocatoria,
         fecha_convocatoria: values.fecha_convocatoria.format('YYYY-MM-DD'),
         tipo: values.tipo,
         provincia_id: values.provincia_id,
@@ -615,7 +619,7 @@ const AdminOposiciones: React.FC = () => {
                 if (val === 'Convocatoria') {
                   const url = editedRow.url_bases_oficiales ?? record.url_bases_oficiales;
                   if (!url || url.trim() === '') {
-                    message.warning('Para ser una Convocatoria debe tener la URL Convocatoria, ya que activa la solicitud de temario.');
+                    message.warning('Para ser una Convocatoria debe tener la URL de bases oficiales, ya que activa la solicitud de temario.');
                     return;
                   }
                 }
@@ -741,6 +745,39 @@ const AdminOposiciones: React.FC = () => {
               className="link-btn"
             >
               Ver bases
+            </Button>
+          </Tooltip>
+        ) : (
+          <Text type="secondary">-</Text>
+        );
+      }
+    },
+    {
+      title: 'URL Convocatoria',
+      dataIndex: 'url_convocatoria',
+      key: 'url_convocatoria',
+      width: 220,
+      render: (_, record) => {
+        if (editingKey === record.id && !isProfesor) {
+          return (
+            <Input
+              value={editedRow.url_convocatoria}
+              onChange={(e) => handleFieldChange('url_convocatoria', e.target.value)}
+              placeholder="URL convocatoria"
+              className="admin-input"
+            />
+          );
+        }
+        return record.url_convocatoria ? (
+          <Tooltip title="Ver convocatoria">
+            <Button
+              type="link"
+              href={record.url_convocatoria}
+              target="_blank"
+              icon={<LinkOutlined />}
+              className="link-btn"
+            >
+              Ver convocatoria
             </Button>
           </Tooltip>
         ) : (
@@ -1292,9 +1329,19 @@ const AdminOposiciones: React.FC = () => {
 
                       <Form.Item
                         name="url_bases_oficiales"
+                        label="URL de bases oficiales"
+                        rules={[
+                          { required: true, message: 'Ingrese la URL' },
+                          { type: 'url', message: 'Ingrese una URL válida' }
+                        ]}
+                      >
+                        <Input placeholder="https://..." style={{ background: '#fff', color: '#1a2332' }} />
+                      </Form.Item>
+
+                      <Form.Item
+                        name="url_convocatoria"
                         label="URL Convocatoria"
                         rules={[
-                          // { required: true, message: 'Ingrese la URL' },
                           { type: 'url', message: 'Ingrese una URL válida' }
                         ]}
                       >
@@ -1314,7 +1361,7 @@ const AdminOposiciones: React.FC = () => {
                             if (val === 'Convocatoria') {
                               const url = createForm.getFieldValue('url_bases_oficiales');
                               if (!url || url.trim() === '') {
-                                message.warning('Para ser una Convocatoria debe tener la URL Convocatoria, ya que activa la solicitud de temario. Se ha revertido a Oferta.');
+                                message.warning('Para ser una Convocatoria debe tener la URL de bases oficiales, ya que activa la solicitud de temario. Se ha revertido a Oferta.');
                                 createForm.setFieldValue('tipo', 'Oferta');
                               }
                             }
