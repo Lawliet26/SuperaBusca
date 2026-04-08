@@ -825,7 +825,11 @@ const AdminOposiciones: React.FC = () => {
                 className="edit-btn"
               />
             </Tooltip>
-            <Tooltip title="Solicitar temario oficial para esta oposición">
+            <Tooltip title={
+                !record.url_bases_oficiales
+                  ? 'Para solicitar el temario, la oposición debe tener una URL de bases oficiales'
+                  : 'Solicitar temario oficial para esta oposición'
+              }>
               <Button
                 type="text"
                 icon={<SolutionOutlined />}
@@ -838,7 +842,7 @@ const AdminOposiciones: React.FC = () => {
                     onOk: () => handleSolicitarTemario(record.id),
                   });
                 }}
-                disabled={editingKey !== null}
+                disabled={editingKey !== null || !record.url_bases_oficiales}
                 className="edit-btn"
               />
             </Tooltip>
@@ -1216,6 +1220,7 @@ const AdminOposiciones: React.FC = () => {
                       layout="vertical"
                       onFinish={handleCreateOposicion}
                       className="modal-form-light"
+                      initialValues={{ tipo: 'Oferta' }}
                     >
                       <Form.Item
                         name="provincia_id"
@@ -1277,11 +1282,35 @@ const AdminOposiciones: React.FC = () => {
                       </Form.Item>
 
                       <Form.Item
+                        name="url_bases_oficiales"
+                        label="URL Convocatoria"
+                        rules={[
+                          // { required: true, message: 'Ingrese la URL' },
+                          { type: 'url', message: 'Ingrese una URL válida' }
+                        ]}
+                      >
+                        <Input placeholder="https://..." style={{ background: '#fff', color: '#1a2332' }} />
+                      </Form.Item>
+
+                      <Form.Item
                         name="tipo"
                         label="Tipo"
                         rules={[{ required: true, message: 'Seleccione el tipo' }]}
                       >
-                        <Select showSearch optionFilterProp="label" options={TIPOS_OPOSICION.map(t => ({ value: t, label: t }))} />
+                        <Select
+                          showSearch
+                          optionFilterProp="label"
+                          options={TIPOS_OPOSICION.map(t => ({ value: t, label: t }))}
+                          onChange={(val) => {
+                            if (val === 'Convocatoria') {
+                              const url = createForm.getFieldValue('url_bases_oficiales');
+                              if (!url || url.trim() === '') {
+                                message.warning('Para ser una Convocatoria debe tener la URL Convocatoria, ya que activa la solicitud de temario. Se ha revertido a Oferta.');
+                                createForm.setFieldValue('tipo', 'Oferta');
+                              }
+                            }
+                          }}
+                        />
                       </Form.Item>
 
                       <Form.Item
@@ -1290,17 +1319,6 @@ const AdminOposiciones: React.FC = () => {
                         rules={[{ required: true, message: 'Seleccione el estado' }]}
                       >
                         <Select showSearch optionFilterProp="label" options={ESTADOS_OPOSICION.map(e => ({ value: e, label: e }))} />
-                      </Form.Item>
-
-                      <Form.Item
-                        name="url_bases_oficiales"
-                        label="URL Bases Oficiales"
-                        rules={[
-                          { required: true, message: 'Ingrese la URL' },
-                          { type: 'url', message: 'Ingrese una URL válida' }
-                        ]}
-                      >
-                        <Input placeholder="https://..." style={{ background: '#fff', color: '#1a2332' }} />
                       </Form.Item>
 
                       <Form.Item

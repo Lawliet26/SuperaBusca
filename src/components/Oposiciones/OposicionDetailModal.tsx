@@ -226,7 +226,7 @@ export const OposicionDetailModal = ({
               <div className="info-item-detail">
                 <LinkOutlined className="info-icon" />
                 <div>
-                  <span className="info-label">Url de bases oficiables</span>
+                  <span className="info-label">Oficiables</span>
                   <span className="info-value">Información de oposición</span>
                 </div>
               </div>
