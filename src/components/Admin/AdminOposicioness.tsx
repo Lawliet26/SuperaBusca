@@ -615,7 +615,7 @@ const AdminOposiciones: React.FC = () => {
                 if (val === 'Convocatoria') {
                   const url = editedRow.url_bases_oficiales ?? record.url_bases_oficiales;
                   if (!url || url.trim() === '') {
-                    message.warning('Para ser una Convocatoria debe tener la URL de bases oficiales, ya que activa la solicitud de temario.');
+                    message.warning('Para ser una Convocatoria debe tener la URL Convocatoria, ya que activa la solicitud de temario.');
                     return;
                   }
                 }
