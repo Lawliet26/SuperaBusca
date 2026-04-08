@@ -611,7 +611,16 @@ const AdminOposiciones: React.FC = () => {
               showSearch
               optionFilterProp="label"
               value={editedRow.tipo}
-              onChange={(val) => handleFieldChange('tipo', val)}
+              onChange={(val) => {
+                if (val === 'Convocatoria') {
+                  const url = editedRow.url_bases_oficiales ?? record.url_bases_oficiales;
+                  if (!url || url.trim() === '') {
+                    message.warning('Para ser una Convocatoria debe tener la URL de bases oficiales, ya que activa la solicitud de temario.');
+                    return;
+                  }
+                }
+                handleFieldChange('tipo', val);
+              }}
               className="admin-select"
               options={TIPOS_OPOSICION.map(t => ({ value: t, label: t }))}
             />
