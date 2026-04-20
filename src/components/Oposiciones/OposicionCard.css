@@ -104,7 +104,7 @@
 .solicitar-btn {
   height: 44px !important;
   border-radius: 10px !important;
-  background: #16253A !important;
+  background: #1E3A5F !important;
   border: none !important;
   font-weight: 600 !important;
   font-size: 14px !important;
@@ -113,7 +113,7 @@
 
 .solicitar-btn:hover {
   background: var(--gradient-primary) !important;
-  box-shadow: 0 8px 24px rgba(91, 228, 235, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(35, 194, 123, 0.4) !important;
 }
 
 .guardar-btn {
@@ -123,11 +123,11 @@
   border: none !important;
   font-weight: 600 !important;
   font-size: 14px !important;
-  box-shadow: 0 4px 16px rgba(91, 228, 235, 0.3) !important;
+  box-shadow: 0 4px 16px rgba(35, 194, 123, 0.3) !important;
 }
 
 .guardar-btn:hover {
-  box-shadow: 0 8px 24px rgba(91, 228, 235, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(35, 194, 123, 0.4) !important;
 }
 
 /* Countdown banner */

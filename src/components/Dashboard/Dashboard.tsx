@@ -7,7 +7,7 @@ import Correcciones from '../Correcciones/Correcciones';
 import './Dashboard.css';
 import Temarios from '../Temarios/Temarios';
 import AdminOposiciones from '../Admin/AdminOposicioness';
-import isotipo from '../../assets/ilustraciones/ilustracion S.png'
+import isotipo from '../../assets/logos/isotipo-verde.png'
 
 const Dashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<string>(() => {

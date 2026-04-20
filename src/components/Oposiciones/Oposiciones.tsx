@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Select, Input, Empty, message, Row, Col, Spin, Pagination, Card, Tag, Button } from 'antd';
+import { Select, Input, Empty, Row, Col, Pagination, Card, Tag, Button } from 'antd';
+import { notify } from '@/utils/notify';
+import { SkeletonGrid } from '../shared/Skeletons';
 import { SearchOutlined, FilterOutlined } from '@ant-design/icons';
 import { oposicionesService } from '../../services/oposicionesService';
 import { provinciasService, Provincia } from '../../services/provinciasService';
@@ -16,7 +18,6 @@ const TIPOS_OPOSICION = ['Convocatoria', 'Oferta'];
 
 const Oposiciones: React.FC = () => {
   const { user } = useAuth();
-  const [messageApi, contextHolder] = message.useMessage();
   const [oposiciones, setOposiciones] = useState<Oposicion[]>([]);
   const [loading, setLoading] = useState(true);
   const [provincias, setProvincias] = useState<Provincia[]>([]);
@@ -44,7 +45,7 @@ const Oposiciones: React.FC = () => {
         setProvincias(provData);
         setCategorias(catData);
       } catch (error) {
-        messageApi.error('Error al cargar los filtros');
+        notify.error('Error al cargar los filtros');
       }
     };
 
@@ -98,7 +99,7 @@ const Oposiciones: React.FC = () => {
       setOposiciones(mappedOposiciones);
       setTotal(result.total);
     } catch (error) {
-      messageApi.error('Error al cargar las oposiciones');
+      notify.error('Error al cargar las oposiciones');
     } finally {
       setLoading(false);
     }
@@ -114,12 +115,12 @@ const Oposiciones: React.FC = () => {
       const response = await oposicionesService.compararTemario(payload);
 
       if (typeof response === 'string') {
-        messageApi.info(response);
+        notify.info(response);
         return;
       }
 
     } catch (error) {
-      messageApi.error('Error al solicitar el temario');
+      notify.error('Error al solicitar el temario');
     }
   };
 
@@ -152,7 +153,7 @@ const Oposiciones: React.FC = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {contextHolder}
+
       <div className="page-header">
         <motion.h1
           className="page-title"
@@ -176,123 +177,115 @@ const Oposiciones: React.FC = () => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
+        style={{
+          background: '#0b192e',
+          border: '1px solid rgba(35,194,123,0.22)',
+          borderRadius: 16,
+          padding: '16px 20px',
+          marginBottom: 20,
+        }}
       >
-        <Card className="filters-card">
-          <div className="filters-row">
-            <div className="filter-item search-filter">
-              <Input
-                placeholder="Buscar oposición..."
-                prefix={<SearchOutlined />}
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  handleFilterChange();
-                }}
-                className="search-input"
-                allowClear
-              />
-            </div>
-
-            <div className="filter-item">
-              <Select
-                showSearch
-                optionFilterProp="children"
-                placeholder={
-                  <span>
-                    <FilterOutlined /> Tipo
-                  </span>
-                }
-                value={tipoFilter || undefined}
-                onChange={(value) => {
-                  setTipoFilter(value);
-                  handleFilterChange();
-                }}
-                allowClear
-                className="filter-select"
-              >
-                {TIPOS_OPOSICION.map(tipo => (
-                  <Option key={tipo} value={tipo}>{tipo}</Option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="filter-item">
-              <Select
-                showSearch
-                optionFilterProp="children"
-                placeholder={
-                  <span>
-                    <FilterOutlined /> Provincia
-                  </span>
-                }
-                value={provinciaFilter || undefined}
-                onChange={(value) => {
-                  setProvinciaFilter(value);
-                  handleFilterChange();
-                }}
-                allowClear
-                className="filter-select"
-              >
-                {provincias.map(prov => (
-                  <Option key={prov.id} value={prov.id}>{prov.nombre}</Option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="filter-item">
-              <Select
-                showSearch
-                optionFilterProp="children"
-                placeholder={
-                  <span>
-                    <FilterOutlined /> Categoría
-                  </span>
-                }
-                value={categoriaFilter || undefined}
-                onChange={(value) => {
-                  setCategoriaFilter(value);
-                  handleFilterChange();
-                }}
-                allowClear
-                className="filter-select"
-              >
-                {categorias.map(cat => (
-                  <Option key={cat.id} value={cat.id}>{cat.nombre}</Option>
-                ))}
-              </Select>
-            </div>
-
-            {hasActiveFilters && (
-              <div>
-                <Button onClick={clearFilters} size='large'>
-                  Limpiar filtros
-                </Button>
-              </div>
-            )}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+          <div style={{ flex: '2 1 240px', minWidth: 200 }}>
+            <Input
+              placeholder="Buscar oposición..."
+              prefix={<SearchOutlined style={{ color: 'var(--text-muted)', fontSize: 15 }} />}
+              value={searchTerm}
+              onChange={(e) => { setSearchTerm(e.target.value); handleFilterChange(); }}
+              allowClear
+              size="large"
+              style={{
+                background: '#0b192e',
+                borderColor: 'rgba(255,255,255,0.1)',
+                borderRadius: 10,
+                color: 'var(--text-primary)',
+                fontSize: 14,
+              }}
+            />
           </div>
 
-          <div className="results-info">
-            <span className="results-count">
-              {total} oposiciones encontradas
-            </span>
-            {hasActiveFilters && (
-              <Tag color="blue">
-                {[
-                  searchTerm && 'Búsqueda',
-                  tipoFilter && tipoFilter !== 'Oferta' && 'Tipo',
-                  provinciaFilter && 'Provincia',
-                  categoriaFilter && 'Categoría'
-                ].filter(Boolean).join(', ')} activo(s)
-              </Tag>
-            )}
+          <div style={{ flex: '1 1 140px', minWidth: 130 }}>
+            <Select
+              showSearch optionFilterProp="children"
+              placeholder="Tipo"
+              value={tipoFilter || undefined}
+              onChange={(value) => { setTipoFilter(value); handleFilterChange(); }}
+              allowClear size="large"
+              style={{ width: '100%' }}
+            >
+              {TIPOS_OPOSICION.map(tipo => (
+                <Option key={tipo} value={tipo}>{tipo}</Option>
+              ))}
+            </Select>
           </div>
-        </Card>
+
+          <div style={{ flex: '1 1 140px', minWidth: 130 }}>
+            <Select
+              showSearch optionFilterProp="children"
+              placeholder="Provincia"
+              value={provinciaFilter || undefined}
+              onChange={(value) => { setProvinciaFilter(value); handleFilterChange(); }}
+              allowClear size="large"
+              style={{ width: '100%' }}
+            >
+              {provincias.map(prov => (
+                <Option key={prov.id} value={prov.id}>{prov.nombre}</Option>
+              ))}
+            </Select>
+          </div>
+
+          <div style={{ flex: '1 1 140px', minWidth: 130 }}>
+            <Select
+              showSearch optionFilterProp="children"
+              placeholder="Categoría"
+              value={categoriaFilter || undefined}
+              onChange={(value) => { setCategoriaFilter(value); handleFilterChange(); }}
+              allowClear size="large"
+              style={{ width: '100%' }}
+            >
+              {categorias.map(cat => (
+                <Option key={cat.id} value={cat.id}>{cat.nombre}</Option>
+              ))}
+            </Select>
+          </div>
+
+          {hasActiveFilters && (
+            <Button
+              onClick={clearFilters}
+              size="large"
+              style={{
+                background: 'rgba(35,194,123,0.08)',
+                borderColor: 'rgba(35,194,123,0.3)',
+                color: '#23C27B',
+                borderRadius: 10,
+                fontWeight: 600,
+                flexShrink: 0,
+              }}
+            >
+              Limpiar filtros
+            </Button>
+          )}
+        </div>
+
+        <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+            <span style={{ color: '#23C27B', fontWeight: 700 }}>{total}</span> oposiciones encontradas
+          </span>
+          {hasActiveFilters && (
+            <Tag color="green" style={{ borderRadius: 6, fontSize: 11 }}>
+              {[
+                searchTerm && 'Búsqueda',
+                tipoFilter && tipoFilter !== 'Oferta' && 'Tipo',
+                provinciaFilter && 'Provincia',
+                categoriaFilter && 'Categoría'
+              ].filter(Boolean).join(', ')} activo(s)
+            </Tag>
+          )}
+        </div>
       </motion.div>
 
       {loading ? (
-        <div className="loading-container">
-          <Spin size="large" tip="Cargando oposiciones..." />
-        </div>
+        <SkeletonGrid count={8} />
       ) : oposiciones.length > 0 ? (
         <>
           <motion.div

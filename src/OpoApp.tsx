@@ -4,15 +4,19 @@ import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './components/Login/Login';
 import Dashboard from './components/Dashboard/Dashboard';
+import { NotificationIsland } from './components/shared/NotificationIsland';
 import './styles/global.css';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <AnimatePresence mode="wait">
-      {isAuthenticated ? <Dashboard /> : <Login />}
-    </AnimatePresence>
+    <>
+      <NotificationIsland />
+      <AnimatePresence mode="wait">
+        {isAuthenticated ? <Dashboard /> : <Login />}
+      </AnimatePresence>
+    </>
   );
 };
 
@@ -22,25 +26,25 @@ const OpoApp: React.FC = () => {
       theme={{
         algorithm: theme.darkAlgorithm,
         token: {
-          colorPrimary: '#5BE4EB',
-          colorBgContainer: '#16253A',
+          colorPrimary: '#1E3A5F',
+          colorBgContainer: '#0b192e',
           colorBorder: 'rgba(255, 255, 255, 0.1)',
-          colorText: '#f8fafc',
+          colorText: '#F0F5FF',
           colorTextSecondary: '#94a3b8',
           borderRadius: 8,
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         },
         components: {
           Button: {
-            primaryShadow: '0 4px 16px rgba(91, 228, 235, 0.3)',
+            primaryShadow: '0 4px 16px rgba(30, 58, 95, 0.4)',
           },
           Input: {
-            activeBorderColor: '#5BE4EB',
-            hoverBorderColor: '#8AEEF3',
-            colorBgContainer: '#16253A',
+            activeBorderColor: '#1E3A5F',
+            hoverBorderColor: '#D0E4F7',
+            colorBgContainer: '#0b192e',
           },
           Select: {
-            optionSelectedBg: 'rgba(91, 228, 235, 0.2)',
+            optionSelectedBg: 'rgba(30, 58, 95, 0.4)',
           },
           Modal: {
             contentBg: '#ffffff',
@@ -48,7 +52,7 @@ const OpoApp: React.FC = () => {
             titleColor: '#1a2332',
             colorText: '#1a2332',
             colorIcon: '#1a2332',
-            colorIconHover: '#5BE4EB',
+            colorIconHover: '#1E3A5F',
           },
         },
       }}

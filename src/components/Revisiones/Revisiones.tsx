@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Collapse, Button, Modal, Input, message, Tag, Space, Spin, Popconfirm } from 'antd';
+import { Collapse, Button, Modal, Input, Tag, Space, Popconfirm } from 'antd';
+import { notify } from '@/utils/notify';
+import { SkeletonList } from '../shared/Skeletons';
 import {
   CheckCircleOutlined,
   EditOutlined,
@@ -49,7 +51,7 @@ const Revisiones: React.FC = () => {
         const data = await revisionesService.getRevisiones();
         setRevisiones(data);
       } catch (error) {
-        message.error('Error al cargar las revisiones');
+        notify.error('Error al cargar las revisiones');
       } finally {
         setLoading(false);
       }
@@ -70,9 +72,9 @@ const Revisiones: React.FC = () => {
       setRevisiones(prev =>
         prev.map(r => r.id === id ? { ...r, estado: 'aprobado' as const } : r)
       );
-      message.success('Revisión aprobada correctamente');
+      notify.success('Revisión aprobada correctamente');
     } catch (error) {
-      message.error('Error al aprobar la revisión');
+      notify.error('Error al aprobar la revisión');
     } finally {
       setActionLoading(false);
     }
@@ -86,7 +88,7 @@ const Revisiones: React.FC = () => {
 
   const handleSolicitarCorreccion = async () => {
     if (!correccionText.trim()) {
-      message.warning('Debes escribir la corrección requerida');
+      notify.warning('Debes escribir la corrección requerida');
       return;
     }
     setActionLoading(true);
@@ -101,12 +103,12 @@ const Revisiones: React.FC = () => {
       setRevisiones(prev =>
         prev.map(r => r.id === selectedRevision ? { ...r, estado: 'corregir' as const } : r)
       );
-      message.success('Corrección solicitada correctamente');
+      notify.success('Corrección solicitada correctamente');
       setModalVisible(false);
       setCorreccionText('');
       setSelectedRevision(null);
     } catch (error) {
-      message.error('Error al solicitar la corrección');
+      notify.error('Error al solicitar la corrección');
     } finally {
       setActionLoading(false);
     }
@@ -141,10 +143,10 @@ const Revisiones: React.FC = () => {
           })
         };
       }));
-      message.success('Recurso actualizado correctamente');
+      notify.success('Recurso actualizado correctamente');
       setRecursoEditVisible(false);
     } catch {
-      message.error('Error al actualizar el recurso');
+      notify.error('Error al actualizar el recurso');
     } finally {
       setRecursoEditLoading(false);
     }
@@ -166,9 +168,9 @@ const Revisiones: React.FC = () => {
           })
         };
       }));
-      message.success('Recurso eliminado correctamente');
+      notify.success('Recurso eliminado correctamente');
     } catch {
-      message.error('Error al eliminar el recurso');
+      notify.error('Error al eliminar el recurso');
     }
   };
 
@@ -196,7 +198,7 @@ const Revisiones: React.FC = () => {
 
   const handleSaveMapeo = async () => {
     if (!mapeoForm.tema_convocatoria_titulo.trim()) {
-      message.warning('El título de convocatoria es requerido');
+      notify.warning('El título de convocatoria es requerido');
       return;
     }
     if (!mapeoContext) return;
@@ -206,18 +208,18 @@ const Revisiones: React.FC = () => {
       if (mapeoModalMode === 'create') {
         const newMapeo = await mapeosDetalleService.create({ ...mapeoForm, temario_id: mapeoContext.temarioId });
         setMapeosMap(prev => ({ ...prev, [key]: [...(prev[key] || []), newMapeo] }));
-        message.success('Mapeo creado correctamente');
+        notify.success('Mapeo creado correctamente');
       } else {
         const updated = await mapeosDetalleService.update({ id: editingMapeoId!, ...mapeoForm });
         setMapeosMap(prev => ({
           ...prev,
           [key]: prev[key].map(m => m.id === editingMapeoId ? updated : m)
         }));
-        message.success('Mapeo actualizado correctamente');
+        notify.success('Mapeo actualizado correctamente');
       }
       setMapeoModalVisible(false);
     } catch {
-      message.error('Error al guardar el mapeo');
+      notify.error('Error al guardar el mapeo');
     } finally {
       setMapeoLoading(false);
     }
@@ -228,9 +230,9 @@ const Revisiones: React.FC = () => {
     try {
       await mapeosDetalleService.delete(mapeoId);
       setMapeosMap(prev => ({ ...prev, [key]: prev[key].filter(m => m.id !== mapeoId) }));
-      message.success('Mapeo eliminado correctamente');
+      notify.success('Mapeo eliminado correctamente');
     } catch {
-      message.error('Error al eliminar el mapeo');
+      notify.error('Error al eliminar el mapeo');
     }
   };
 
@@ -244,11 +246,7 @@ const Revisiones: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="loading-container">
-        <Spin size="large" tip="Cargando revisiones..." />
-      </div>
-    );
+    return <SkeletonList count={5} />;
   }
 
   return (

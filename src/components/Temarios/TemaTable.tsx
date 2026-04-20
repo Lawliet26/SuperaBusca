@@ -20,7 +20,7 @@ export const TemaTable = ({ temas }: TemaTableProps) => {
         <tbody>
           {temas.map((tema, index) => (
             <tr key={index}>
-              <td data-label="#" style={{ textAlign: 'center', color: '#5BE4EB', fontWeight: 600, fontSize: 14 }}>
+              <td data-label="#" style={{ textAlign: 'center', color: '#23C27B', fontWeight: 600, fontSize: 14 }}>
                 {index + 1}
               </td>
               <td data-label="Tema de la Oposición">

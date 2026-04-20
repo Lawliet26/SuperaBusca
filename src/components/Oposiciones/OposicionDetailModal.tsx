@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Modal, Tag, Divider, Spin, Empty, message } from 'antd';
+import { Modal, Tag, Divider, Spin, Empty } from 'antd';
+import { notify } from '@/utils/notify';
 import {
   CalendarOutlined,
   EnvironmentOutlined,
@@ -51,7 +52,7 @@ export const OposicionDetailModal = ({
       setRecursos(data);
     } catch (error) {
       console.error('Error al cargar recursos:', error);
-      message.error('Error al cargar los recursos');
+      notify.error('Error al cargar los recursos');
     } finally {
       setLoading(false);
     }

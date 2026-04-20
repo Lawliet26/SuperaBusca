@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { OposicionAccordion } from './OposicionAccordion';
-import { useToast } from '@/hooks/use-toast';
+import { notify } from '@/utils/notify';
 import { temariosService } from '@/services/temariosService';
 import { OposicionData } from '@/types';
-import { Spin } from 'antd';
+import { SkeletonList } from '../shared/Skeletons';
 import { useAuth } from '@/context/AuthContext';
 import './Temarios.css';
 
 export const Temarios = () => {
-  const { toast } = useToast();
   const { user } = useAuth()
   const [oposiciones, setOposiciones] = useState<OposicionData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,25 +20,17 @@ export const Temarios = () => {
         const data = await temariosService.getMisTemarios(user);
         setOposiciones(data);
       } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Error al cargar los temarios',
-          variant: 'destructive',
-        });
+        notify.error('Error al cargar los temarios');
       } finally {
         setLoading(false);
       }
     };
 
     fetchTemarios();
-  }, [toast]);
+  }, []);
 
   if (loading) {
-    return (
-      <div className="loading-container">
-          <Spin size="large" tip="Cargando correcciones..." />
-        </div>
-    );
+    return <SkeletonList count={5} />;
   }
 
   return (

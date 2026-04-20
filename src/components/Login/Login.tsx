@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { Form, Input, Button, message } from 'antd';
-import { UserOutlined, LockOutlined, BookOutlined } from '@ant-design/icons';
+import { Form, Input, Button } from 'antd';
+import { notify } from '@/utils/notify';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useAuth } from '../../context/AuthContext';
 import './Login.css';
-import isotipo from '../../assets/ilustraciones/ilustracion S.png'
-import logo from '../../assets/logos/logo-text.png'
+import isotipo from '../../assets/logos/isotipo-verde.png'
+import logo from '../../assets/logos/logo-verde-blanco.png'
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -16,12 +17,12 @@ const Login: React.FC = () => {
     try {
       const success = await login(values.email, values.password);
       if (success) {
-        message.success('¡Bienvenido al sistema!');
+        notify.success('¡Bienvenido al sistema!');
       } else {
-        message.error('Credenciales incorrectas');
+        notify.error('Credenciales incorrectas');
       }
     } catch (error) {
-      message.error('Error al iniciar sesión');
+      notify.error('Error al iniciar sesión');
     } finally {
       setLoading(false);
     }
@@ -47,18 +48,6 @@ const Login: React.FC = () => {
     }
   };
 
-  const logoVariants: Variants = {
-    hidden: { scale: 0, rotate: -180 },
-    visible: {
-      scale: 1,
-      rotate: 0,
-      transition: {
-        type: 'spring' as const,
-        stiffness: 200,
-        damping: 20
-      }
-    }
-  };
 
   return (
     <div className="login-container">
@@ -90,7 +79,14 @@ const Login: React.FC = () => {
       </div>
 
       <div className="isotipo-container">
-        <img src={isotipo} alt="isotipo" className='isotipo' />
+        <motion.img
+          src={isotipo}
+          alt="isotipo"
+          className="isotipo"
+          initial={{ opacity: 0, x: 200, scale: 0.85 }}
+          animate={{ opacity: 0.15, x: 0, scale: 1 }}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+        />
       </div>
       <AnimatePresence>
         <motion.div
@@ -99,9 +95,9 @@ const Login: React.FC = () => {
           initial="hidden"
           animate="visible"
         >
-          <motion.div className="login-logo" variants={logoVariants}>
-               <img src={isotipo} alt="logo-text" style={{ width: 30 }}/>
-          </motion.div>
+          {/* <motion.div className="login-logo" variants={logoVariants}>
+              <img src={isotipo} alt="logo-text" style={{ width: 30 }}/>
+          </motion.div> */}
 
           <motion.h1 className="login-title" variants={itemVariants}>
             <img src={logo} alt="logo-text" style={{ width: 200 }}/>

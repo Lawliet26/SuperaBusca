@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Collapse, Button, Modal, Input, message, Tag, Space, Spin, Popconfirm } from 'antd';
+import { Collapse, Button, Modal, Input, Tag, Space, Popconfirm } from 'antd';
+import { notify } from '@/utils/notify';
+import { SkeletonList } from '../shared/Skeletons';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -45,7 +47,7 @@ const Correcciones: React.FC = () => {
         const data = await correccionesService.getCorrecciones();
         setCorrecciones(data);
       } catch (error) {
-        message.error('Error al cargar las correcciones');
+        notify.error('Error al cargar las correcciones');
       } finally {
         setLoading(false);
       }
@@ -66,9 +68,9 @@ const Correcciones: React.FC = () => {
       setCorrecciones(prev =>
         prev.map(c => c.id === id ? { ...c, estado: 'aprobado' as const } : c)
       );
-      message.success('Corrección aprobada correctamente');
+      notify.success('Corrección aprobada correctamente');
     } catch (error) {
-      message.error('Error al aprobar la corrección');
+      notify.error('Error al aprobar la corrección');
     } finally {
       setActionLoading(false);
     }
@@ -87,9 +89,9 @@ const Correcciones: React.FC = () => {
       setCorrecciones(prev =>
         prev.map(c => c.id === id ? { ...c, estado: 'rechazado' as const } : c)
       );
-      message.warning('Corrección rechazada');
+      notify.warning('Corrección rechazada');
     } catch (error) {
-      message.error('Error al rechazar la corrección');
+      notify.error('Error al rechazar la corrección');
     } finally {
       setActionLoading(false);
     }
@@ -124,10 +126,10 @@ const Correcciones: React.FC = () => {
           })
         };
       }));
-      message.success('Recurso actualizado correctamente');
+      notify.success('Recurso actualizado correctamente');
       setRecursoEditVisible(false);
     } catch {
-      message.error('Error al actualizar el recurso');
+      notify.error('Error al actualizar el recurso');
     } finally {
       setRecursoEditLoading(false);
     }
@@ -149,9 +151,9 @@ const Correcciones: React.FC = () => {
           })
         };
       }));
-      message.success('Recurso eliminado correctamente');
+      notify.success('Recurso eliminado correctamente');
     } catch {
-      message.error('Error al eliminar el recurso');
+      notify.error('Error al eliminar el recurso');
     }
   };
 
@@ -179,7 +181,7 @@ const Correcciones: React.FC = () => {
 
   const handleSaveMapeo = async () => {
     if (!mapeoForm.tema_convocatoria_titulo.trim()) {
-      message.warning('El título de convocatoria es requerido');
+      notify.warning('El título de convocatoria es requerido');
       return;
     }
     if (!mapeoContext) return;
@@ -189,18 +191,18 @@ const Correcciones: React.FC = () => {
       if (mapeoModalMode === 'create') {
         const newMapeo = await mapeosDetalleService.create({ ...mapeoForm, temario_id: mapeoContext.temarioId });
         setMapeosMap(prev => ({ ...prev, [key]: [...(prev[key] || []), newMapeo] }));
-        message.success('Mapeo creado correctamente');
+        notify.success('Mapeo creado correctamente');
       } else {
         const updated = await mapeosDetalleService.update({ id: editingMapeoId!, ...mapeoForm });
         setMapeosMap(prev => ({
           ...prev,
           [key]: prev[key].map(m => m.id === editingMapeoId ? updated : m)
         }));
-        message.success('Mapeo actualizado correctamente');
+        notify.success('Mapeo actualizado correctamente');
       }
       setMapeoModalVisible(false);
     } catch {
-      message.error('Error al guardar el mapeo');
+      notify.error('Error al guardar el mapeo');
     } finally {
       setMapeoLoading(false);
     }
@@ -211,9 +213,9 @@ const Correcciones: React.FC = () => {
     try {
       await mapeosDetalleService.delete(mapeoId);
       setMapeosMap(prev => ({ ...prev, [key]: prev[key].filter(m => m.id !== mapeoId) }));
-      message.success('Mapeo eliminado correctamente');
+      notify.success('Mapeo eliminado correctamente');
     } catch {
-      message.error('Error al eliminar el mapeo');
+      notify.error('Error al eliminar el mapeo');
     }
   };
 
@@ -227,11 +229,7 @@ const Correcciones: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="loading-container">
-        <Spin size="large" tip="Cargando correcciones..." />
-      </div>
-    );
+    return <SkeletonList count={5} />;
   }
 
   return (

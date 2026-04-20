@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, FileText, Image, Video, Headphones, ExternalLink, Download } from 'lucide-react';
-import { message, Modal, Spin } from 'antd';
+import { Modal, Spin } from 'antd';
+import { notify } from '@/utils/notify';
 import { useEffect, useState } from 'react';
 import './RecursosModal.css';
 import { recursosService } from '@/services/recursosService';
@@ -42,7 +43,7 @@ export const RecursosModal = ({
             setRecursos(data);
         } catch (error) {
             console.error('Error al cargar recursos:', error);
-            message.error('Error al cargar los recursos. Por favor, intenta de nuevo.');
+            notify.error('Error al cargar los recursos. Por favor, intenta de nuevo.');
         } finally {
             setLoading(false);
         }

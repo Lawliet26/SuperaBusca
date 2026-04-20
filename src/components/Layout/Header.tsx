@@ -1,19 +1,17 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Menu, Button, Dropdown, Space, Avatar } from 'antd';
+import { Dropdown, Avatar, Tooltip } from 'antd';
 import {
   LogoutOutlined,
-  UserOutlined,
-  MenuOutlined,
   BookOutlined,
   FileSearchOutlined,
   EditOutlined,
-  SnippetsOutlined
+  SnippetsOutlined,
+  UserOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../context/AuthContext';
-import type { MenuProps } from 'antd';
 import './Header.css';
-import logo from '../../assets/logos/logo-completo.png';
+import isotipo from '../../assets/logos/isotipo-verde.png';
 
 interface HeaderProps {
   currentPage: string;
@@ -22,8 +20,15 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
   const { user, logout, isProfesor, isAdmin } = useAuth();
+  const [scrolled, setScrolled] = useState(false);
 
-  const menuItems = [
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const navItems = [
     { key: 'oposiciones', label: 'Oposiciones', icon: <BookOutlined />, visible: true },
     { key: 'revisiones', label: 'Revisiones', icon: <FileSearchOutlined />, visible: isProfesor || isAdmin },
     { key: 'correcciones', label: 'Correcciones', icon: <EditOutlined />, visible: isProfesor || isAdmin },
@@ -31,113 +36,80 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
     { key: 'admin', label: 'Administrador', icon: <EditOutlined />, visible: isAdmin || isProfesor },
   ].filter(item => item.visible);
 
-  const userMenuItems: MenuProps['items'] = [
-    {
-      key: 'profile',
-      label: (
-        <Space>
-          <UserOutlined />
-          {user?.nombre}
-        </Space>
-      ),
-    },
-    {
-      key: 'rol',
-      label: (
-        <Space>
-          <span style={{ color: user?.rol === 'PROFESOR' ? '#22c55e' : user?.rol === 'ESTUDIANTE' ? '#5BE4EB' : '#ff0000' }}>
-            {user?.rol === 'PROFESOR' ? 'Profesor' : user?.rol === 'ESTUDIANTE' ? 'Estudiante' : 'Admin'}
+  const rolLabel = user?.rol === 'PROFESOR' ? 'Profesor' : user?.rol === 'ESTUDIANTE' ? 'Estudiante' : 'Admin';
+  const rolColor = user?.rol === 'PROFESOR' ? '#23C27B' : user?.rol === 'ESTUDIANTE' ? '#DFF5EC' : '#ef4444';
+
+  const userPanel = (
+    <div className="user-panel">
+      <div className="user-panel-header">
+        <div className="user-panel-info">
+          <span className="user-panel-name">{user?.nombre}</span>
+          <span className="user-panel-email">{user?.username}</span>
+          <span className="user-panel-role" style={{ color: rolColor, borderColor: rolColor }}>
+            {rolLabel == 'Admin' ? 'Administrador' : rolLabel}
           </span>
-        </Space>
-      ),
-    },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'logout',
-      label: (
-        <Space>
-          <LogoutOutlined />
-          Cerrar Sesión
-        </Space>
-      ),
-      onClick: logout,
-    },
-  ];
-
-  const mobileMenuItems: MenuProps['items'] = menuItems.map(item => ({
-    key: item.key,
-    label: (
-      <Space>
-        {item.icon}
-        {item.label}
-      </Space>
-    ),
-    onClick: () => onNavigate(item.key),
-  }));
-
-
-  return (
-    <motion.header
-      className="header"
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: 'easeOut' }}
-    >
-      <div className="header-content">
-        <motion.div
-          className="logo"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {/* <BookOutlined className="logo-icon" />asdasd */}
-          <img src={logo} alt="logo" className='logo-header' />
-          {/* <span className="logo-text">OpoReview</span> */}
-        </motion.div>
-
-        <nav className="nav-desktop">
-          {menuItems.map((item) => (
-            <motion.button
-              key={item.key}
-              className={`nav-item ${currentPage === item.key ? 'active' : ''}`}
-              onClick={() => onNavigate(item.key)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </motion.button>
-          ))}
-        </nav>
-
-        <div className="header-actions">
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <motion.div
-              className="user-avatar"
-              whileHover={{ scale: 1.1 }}
-            >
-              <Avatar
-                icon={<UserOutlined />}
-                style={{
-                  background: 'linear-gradient(135deg, #16253A 0%, #5BE4EB 100%)',
-                  cursor: 'pointer'
-                }}
-              />
-            </motion.div>
-          </Dropdown>
-
-          <div className="nav-mobile">
-            <Dropdown menu={{ items: mobileMenuItems }} placement="bottomRight">
-              <Button
-                type="text"
-                icon={<MenuOutlined style={{ color: 'white', fontSize: '20px' }} />}
-              />
-            </Dropdown>
-          </div>
         </div>
       </div>
-    </motion.header>
+      <div className="user-panel-divider" />
+      <button className="user-panel-logout" onClick={logout}>
+        <span className="logout-icon-circle">
+          <LogoutOutlined />
+        </span>
+        <span>Cerrar sesión</span>
+      </button>
+    </div>
+  );
+
+  return (
+    <header className="header">
+      <motion.div
+        className={`main-pill${scrolled ? ' scrolled' : ''}`}
+        initial={{ y: -60, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+      >
+        <motion.div
+          className="pill-logo"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => onNavigate('oposiciones')}
+        >
+          <img src={isotipo} alt="logo" className="logo-header" />
+        </motion.div>
+
+        <div className="pill-separator" />
+
+        {navItems.map((item) => {
+          const active = currentPage === item.key;
+          return (
+            <Tooltip key={item.key} title={scrolled ? item.label : ''} placement="bottom">
+              <motion.button
+                className={`pill-nav-item${active ? ' active' : ''}`}
+                onClick={() => onNavigate(item.key)}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <span className="pill-item-icon">{item.icon}</span>
+                <span className="pill-item-label">{item.label}</span>
+              </motion.button>
+            </Tooltip>
+          );
+        })}
+
+        <div className="pill-separator" />
+
+        <Dropdown popupRender={() => userPanel} placement="bottomRight" trigger={['click']}>
+          <motion.div className="pill-user" whileHover={{ scale: 1.03 }}>
+            <Avatar
+              size={28}
+              style={{ background: '#23C27B', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}
+            >
+              <UserOutlined  style={{ color: '#0B1F19', fontSize: 15 }}/>
+            </Avatar>
+          </motion.div>
+        </Dropdown>
+      </motion.div>
+    </header>
   );
 };
 

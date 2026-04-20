@@ -88,13 +88,13 @@
 
 .info-item-detail:hover {
   background: #eaf3fb;
-  border-color: #5BE4EB;
+  border-color: #23C27B;
   transform: translateY(-1px);
 }
 
 .info-icon {
   font-size: 22px;
-  color: #5BE4EB;
+  color: #23C27B;
   margin-top: 2px;
   flex-shrink: 0;
 }
@@ -251,7 +251,7 @@
 
 .recursos-grid-detail::-webkit-scrollbar-thumb:hover,
 .oposicion-detail-modal .ant-modal-body::-webkit-scrollbar-thumb:hover {
-  background: #5BE4EB;
+  background: #23C27B;
 }
 
 /* Responsive */

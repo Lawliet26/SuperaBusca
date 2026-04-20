@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { notify } from '@/utils/notify';
 import {
   Table,
   Select,
   Input,
   Button,
-  message,
   Space,
   Spin,
   Modal,
@@ -128,7 +128,7 @@ const AdminOposiciones: React.FC = () => {
       const data = await recursosService.getRecursosByOposicion(record.id);
       setRecursoViewList(data);
     } catch {
-      message.error('Error al cargar los recursos');
+      notify.error('Error al cargar los recursos');
     } finally {
       setRecursoViewLoading(false);
     }
@@ -156,7 +156,7 @@ const AdminOposiciones: React.FC = () => {
       setMunicipios(munData);
       setCategorias(catData);
     } catch (error) {
-      message.error('Error cargando catálogos');
+      notify.error('Error cargando catálogos');
     }
   };
 
@@ -184,7 +184,7 @@ const AdminOposiciones: React.FC = () => {
       setOposiciones([...result.data].sort((a, b) => b.id - a.id));
       setTotal(result.total);
     } catch (error) {
-      message.error('Error cargando datos');
+      notify.error('Error cargando datos');
     } finally {
       setLoading(false);
     }
@@ -240,12 +240,12 @@ const AdminOposiciones: React.FC = () => {
         };
       await oposicionesService.updateOposicion(updatePayload);
 
-      message.success('Oposición actualizada correctamente');
+      notify.success('Oposición actualizada correctamente');
       setEditingKey(null);
       setEditedRow({});
       loadData();
     } catch (error) {
-      message.error('Error al actualizar la oposición');
+      notify.error('Error al actualizar la oposición');
     } finally {
       setSavingId(null);
     }
@@ -280,13 +280,13 @@ const AdminOposiciones: React.FC = () => {
         observaciones: values.observaciones
       });
 
-      message.success('Oposición creada correctamente');
+      notify.success('Oposición creada correctamente');
       setAddOposicionModal(false);
       createForm.resetFields();
       setCurrentPage(1);
       loadData();
     } catch (error) {
-      message.error('Error al crear la oposición');
+      notify.error('Error al crear la oposición');
     } finally {
       setCreatingOposicion(false);
     }
@@ -307,18 +307,18 @@ const AdminOposiciones: React.FC = () => {
     try {
       if (recursoType === 'relacion') {
         if (fileList.length === 0) {
-          message.error('Por favor seleccione un archivo PDF');
+          notify.error('Por favor seleccione un archivo PDF');
           setUploadingRecurso(false);
           return;
         }
         const file = fileList[0].originFileObj as File;
         if (file.type !== 'application/pdf') {
-          message.error('Solo se aceptan archivos PDF');
+          notify.error('Solo se aceptan archivos PDF');
           setUploadingRecurso(false);
           return;
         }
         await recursosService.uploadRelacionTemario(selectedOposicionId, file);
-        message.success('Relación de temario cargada correctamente');
+        notify.success('Relación de temario cargada correctamente');
       } else {
         const formData = new FormData();
         formData.append('oposicion_id', selectedOposicionId.toString());
@@ -326,14 +326,14 @@ const AdminOposiciones: React.FC = () => {
 
         if (recursoType === 'file') {
           if (fileList.length === 0) {
-            message.error('Por favor seleccione un archivo');
+            notify.error('Por favor seleccione un archivo');
             setUploadingRecurso(false);
             return;
           }
           formData.append('data', fileList[0].originFileObj as File);
         } else {
           if (!values.url) {
-            message.error('Por favor ingrese una URL');
+            notify.error('Por favor ingrese una URL');
             setUploadingRecurso(false);
             return;
           }
@@ -341,7 +341,7 @@ const AdminOposiciones: React.FC = () => {
         }
 
         await recursosService.uploadRecurso(formData);
-        message.success('Recurso agregado correctamente');
+        notify.success('Recurso agregado correctamente');
       }
 
       setAddRecursoModal(false);
@@ -349,7 +349,7 @@ const AdminOposiciones: React.FC = () => {
       setFileList([]);
       setSelectedOposicionId(null);
     } catch (error) {
-      message.error('Error al agregar el recurso');
+      notify.error('Error al agregar el recurso');
     } finally {
       setUploadingRecurso(false);
     }
@@ -360,12 +360,12 @@ const AdminOposiciones: React.FC = () => {
     setAddingItem(true);
     try {
       await provinciasService.createProvincia(newItemName.trim());
-      message.success('Provincia creada correctamente');
+      notify.success('Provincia creada correctamente');
       setAddProvinciaModal(false);
       setNewItemName('');
       loadCatalogs();
     } catch (error) {
-      message.error('Error al crear la provincia');
+      notify.error('Error al crear la provincia');
     } finally {
       setAddingItem(false);
     }
@@ -376,12 +376,12 @@ const AdminOposiciones: React.FC = () => {
     setAddingItem(true);
     try {
       await municipiosService.createMunicipio(newItemName.trim());
-      message.success('Municipio creado correctamente');
+      notify.success('Municipio creado correctamente');
       setAddMunicipioModal(false);
       setNewItemName('');
       loadCatalogs();
     } catch (error) {
-      message.error('Error al crear el municipio');
+      notify.error('Error al crear el municipio');
     } finally {
       setAddingItem(false);
     }
@@ -392,12 +392,12 @@ const AdminOposiciones: React.FC = () => {
     setAddingItem(true);
     try {
       await categoriasService.createCategoria(newItemName.trim());
-      message.success('Categoría creada correctamente');
+      notify.success('Categoría creada correctamente');
       setAddCategoriaModal(false);
       setNewItemName('');
       loadCatalogs();
     } catch (error) {
-      message.error('Error al crear la categoría');
+      notify.error('Error al crear la categoría');
     } finally {
       setAddingItem(false);
     }
@@ -451,8 +451,8 @@ const AdminOposiciones: React.FC = () => {
 
   const getTipoColor = (tipo: string) => {
     switch (tipo) {
-      case 'Convocatoria': return '#5BE4EB';
-      case 'Oferta': return '#3ABBC2';
+      case 'Convocatoria': return '#23C27B';
+      case 'Oferta': return '#2A4F82';
       default: return '#6b7280';
     }
   };
@@ -468,12 +468,12 @@ const AdminOposiciones: React.FC = () => {
       const response = await oposicionesService.compararTemarioAdmin(payload);
 
       if (typeof response === 'string') {
-        message.info(response);
+        notify.info(response);
         return;
       }
 
     } catch (error) {
-      message.error('Error al solicitar el temario');
+      notify.error('Error al solicitar el temario');
     }
   };
 
@@ -597,7 +597,7 @@ const AdminOposiciones: React.FC = () => {
           );
         }
         return (
-          <span style={{ color: '#5BE4EB', fontWeight: 600, fontSize: 14 }}>
+          <span style={{ color: '#23C27B', fontWeight: 600, fontSize: 14 }}>
             {record.num_plazas}
           </span>
         );
@@ -619,7 +619,7 @@ const AdminOposiciones: React.FC = () => {
                 if (val === 'Convocatoria') {
                   const url = editedRow.url_bases_oficiales ?? record.url_bases_oficiales;
                   if (!url || url.trim() === '') {
-                    message.warning('Para ser una Convocatoria debe tener la URL de bases oficiales, ya que activa la solicitud de temario.');
+                    notify.warning('Para ser una Convocatoria debe tener la URL de bases oficiales, ya que activa la solicitud de temario.');
                     return;
                   }
                 }
@@ -685,7 +685,7 @@ const AdminOposiciones: React.FC = () => {
         }
         return record.fecha_convocatoria ? (
           <Space size={4}>
-            <CalendarOutlined style={{ color: '#5BE4EB' }} />
+            <CalendarOutlined style={{ color: '#23C27B' }} />
             <Text>{dayjs(record.fecha_convocatoria).format('DD/MM/YYYY')}</Text>
           </Space>
         ) : (
@@ -711,7 +711,7 @@ const AdminOposiciones: React.FC = () => {
         }
         return record.fecha_fin ? (
           <Space size={4}>
-            <CalendarOutlined style={{ color: '#5BE4EB' }} />
+            <CalendarOutlined style={{ color: '#23C27B' }} />
             <Text>{dayjs(record.fecha_fin).format('DD/MM/YYYY')}</Text>
           </Space>
         ) : (
@@ -1126,7 +1126,7 @@ const AdminOposiciones: React.FC = () => {
                   <ConfigProvider
                     theme={{
                       algorithm: theme.defaultAlgorithm,
-                      token: { colorBgContainer: '#ffffff', colorText: '#1a2332', colorTextPlaceholder: '#9ca3af', colorBorder: '#d1d5db', colorPrimary: '#5BE4EB' },
+                      token: { colorBgContainer: '#ffffff', colorText: '#1a2332', colorTextPlaceholder: '#9ca3af', colorBorder: '#d1d5db', colorPrimary: '#23C27B' },
                       components: {
                         Input: { colorBgContainer: '#ffffff', colorText: '#1a2332' },
                         Select: { colorBgContainer: '#ffffff', optionSelectedBg: 'rgba(91, 228, 235, 0.15)' },
@@ -1251,7 +1251,7 @@ const AdminOposiciones: React.FC = () => {
                         colorText: '#1a2332',
                         colorTextPlaceholder: '#9ca3af',
                         colorBorder: '#d1d5db',
-                        colorPrimary: '#5BE4EB',
+                        colorPrimary: '#23C27B',
                       },
                       components: {
                         Input: { colorBgContainer: '#ffffff', colorText: '#1a2332' },
@@ -1361,7 +1361,7 @@ const AdminOposiciones: React.FC = () => {
                             if (val === 'Convocatoria') {
                               const url = createForm.getFieldValue('url_bases_oficiales');
                               if (!url || url.trim() === '') {
-                                message.warning('Para ser una Convocatoria debe tener la URL de bases oficiales, ya que activa la solicitud de temario. Se ha revertido a Oferta.');
+                                notify.warning('Para ser una Convocatoria debe tener la URL de bases oficiales, ya que activa la solicitud de temario. Se ha revertido a Oferta.');
                                 createForm.setFieldValue('tipo', 'Oferta');
                               }
                             }

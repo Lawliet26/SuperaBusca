@@ -1,16 +1,17 @@
-import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card, Tag, Button, Tooltip, Modal } from 'antd';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Tooltip, Modal } from 'antd';
 import {
   CalendarOutlined,
   EnvironmentOutlined,
   TeamOutlined,
   BookOutlined,
-  ClockCircleOutlined,
-  LockOutlined
+  LockOutlined,
+  RightOutlined,
+  FileTextOutlined,
+  CheckCircleOutlined,
 } from '@ant-design/icons';
 import { Oposicion } from '../../types';
-import './OposicionCard.css';
 import { OposicionDetailModal } from './OposicionDetailModal';
 
 interface OposicionCardProps {
@@ -19,54 +20,26 @@ interface OposicionCardProps {
   onSolicitarTemario: (id: string) => void;
 }
 
+const estadoConfig: Record<string, { color: string; bg: string; label: string; pulse: boolean }> = {
+  abierta:   { color: '#23C27B', bg: 'rgba(35,194,123,0.12)',  label: 'Abierta',  pulse: true  },
+  cerrada:   { color: '#ef4444', bg: 'rgba(239,68,68,0.12)',   label: 'Cerrada',  pulse: false },
+  'en curso':{ color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', label: 'En Curso', pulse: false },
+};
+
+const tipoConfig: Record<string, { color: string; bg: string }> = {
+  Convocatoria: { color: '#DFF5EC', bg: '#1E3A5F' },
+  Oferta:       { color: '#94a3b8', bg: 'rgba(148,163,184,0.10)' },
+};
+
 const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolicitarTemario }) => {
+  const [hovered, setHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const countdown = useMemo(() => {
-    if (!oposicion.fechaFinalizacion) return null;
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const fin = new Date(oposicion.fechaFinalizacion);
-    fin.setHours(0, 0, 0, 0);
-    const diffMs = fin.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays < 0) return { days: 0, label: 'Finalizada', urgency: 'expired' as const };
-    if (diffDays === 0) return { days: 0, label: 'Finaliza hoy', urgency: 'critical' as const };
-    if (diffDays === 1) return { days: 1, label: '1 dia restante', urgency: 'critical' as const };
-    if (diffDays <= 3) return { days: diffDays, label: `${diffDays} dias restantes`, urgency: 'danger' as const };
-    if (diffDays <= 7) return { days: diffDays, label: `${diffDays} dias restantes`, urgency: 'warning' as const };
-    return null;
-  }, [oposicion.fechaFinalizacion]);
+  const estado = estadoConfig[oposicion.estado] ?? { color: '#94a3b8', bg: 'rgba(148,163,184,0.12)', label: oposicion.estado, pulse: false };
+  const tipo = tipoConfig[oposicion.tipo] ?? tipoConfig.Oferta;
+  const isOferta = oposicion.tipo === 'Oferta';
 
-  const getEstadoColor = (estado: string) => {
-    switch (estado) {
-      case 'abierta':
-        return '#22c55e';
-      case 'cerrada':
-        return '#ef4444';
-      case 'en curso':
-        return '#f59e0b';
-      default:
-        return '#94a3b8';
-    }
-  };
-
-  const getEstadoLabel = (estado: string) => {
-    switch (estado) {
-      case 'abierta':
-        return 'Abierta';
-      case 'cerrada':
-        return 'Cerrada';
-      case 'en curso':
-        return 'En Curso';
-      default:
-        return estado;
-    }
-  };
-
-  const handleCardClick = () => {
-    setIsModalOpen(true);
-  };
+  const handleCardClick = () => setIsModalOpen(true);
 
   const handleButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -78,91 +51,147 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
       onOk: () => onSolicitarTemario(oposicion.id),
     });
   };
-  
+
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: index * 0.1 }}
-        whileHover={{ y: -8 }}
-        style={{ height: '100%' }}
+        transition={{ duration: 0.3, delay: index * 0.04 }}
+        onHoverStart={() => setHovered(true)}
+        onHoverEnd={() => setHovered(false)}
+        onClick={handleCardClick}
+        style={{
+          background: hovered
+            ? 'linear-gradient(135deg, #0b192e 0%, #0b192e 100%)'
+            : '#0b192e',
+          border: hovered ? '1px solid rgba(35,194,123,0.55)' : '1px solid rgba(35,194,123,0.22)',
+          borderRadius: 16,
+          padding: '20px 22px',
+          cursor: 'pointer',
+          transition: 'all 0.25s ease',
+          boxShadow: hovered
+            ? '0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(35,194,123,0.15)'
+            : '0 2px 8px rgba(0,0,0,0.1)',
+          transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+          position: 'relative',
+          overflow: 'hidden',
+          opacity: isOferta ? 0.55 : 1,
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+        }}
       >
-        <Card className="oposicion-card" onClick={handleCardClick} style={{ cursor: 'pointer', opacity: oposicion.tipo === 'Oferta' ? 0.5 : 1 }}>
-          <div className="card-header">
-            <Tag
-              color={getEstadoColor(oposicion.estado)}
-              className="estado-tag"
-            >
-              {getEstadoLabel(oposicion.estado)}
-            </Tag>
-            <Tag className="estado-tag">{oposicion.categoria}</Tag>
-          </div>
+        {hovered && (
+          <div style={{
+            position: 'absolute', top: 0, right: 0, width: 180, height: 180,
+            background: 'radial-gradient(circle, rgba(35,194,123,0.08) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
+        )}
 
-          {/* <AnimatePresence>
-            {countdown && (
-              <motion.div
-                className={`countdown-banner countdown-${countdown.urgency}`}
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <ClockCircleOutlined className="countdown-icon" />
-                <span className="countdown-text">{countdown.label}</span>
-              </motion.div>
-            )}
-          </AnimatePresence> */}
+        {/* Badges */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: estado.bg, color: estado.color,
+            border: `1px solid ${estado.color}44`,
+            borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 600,
+          }}>
+            <span style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: estado.color, display: 'inline-block',
+              animation: estado.pulse ? 'pulse-dot 2s infinite' : 'none',
+            }} />
+            {estado.label}
+          </span>
 
-          <h3 className="card-title">{oposicion.titulo}</h3>
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="card-info">
-              <Tooltip title="Provincia">
-                <div className="info-item">
-                  <EnvironmentOutlined />
-                  <span>{oposicion.provincia}</span>
-                </div>
-              </Tooltip>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: tipo.bg, color: tipo.color,
+            border: `1px solid ${tipo.color}44`,
+            borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 600,
+          }}>
+            <FileTextOutlined style={{ fontSize: 10 }} />
+            {oposicion.categoria || oposicion.tipo}
+          </span>
+        </div>
 
-              <Tooltip title="Fecha de Convocatoria">
-                <div className="info-item">
-                  <CalendarOutlined />
-                  <span>{new Date(oposicion.fechaConvocatoria).toLocaleDateString('es-ES')}</span>
-                </div>
-              </Tooltip>
+        {/* Title */}
+        <div style={{
+          fontWeight: 700, fontSize: 15, color: '#F4FAF8',
+          lineHeight: 1.35, marginBottom: 6,
+          overflow: 'hidden', display: '-webkit-box',
+          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const,
+        }}>
+          {oposicion.titulo}
+        </div>
 
-              {/* {oposicion.fechaFinalizacion && (
-                <Tooltip title="Fecha de Finalización">
-                  <div className="info-item">
-                    <CalendarOutlined />
-                    <span>{new Date(oposicion.fechaFinalizacion).toLocaleDateString('es-ES')}</span>
-                  </div>
-                </Tooltip>
-              )} */}
+        {/* Divider */}
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '12px 0' }} />
 
-              <Tooltip title="Plazas Disponibles">
-                <div className="info-item">
-                  <TeamOutlined />
-                  <span>{oposicion.plazas} plazas</span>
-                </div>
-              </Tooltip>
+        {/* Info row */}
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 14 }}>
+          <Tooltip title="Provincia">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#DFF5EC', fontSize: 12 }}>
+              <EnvironmentOutlined style={{ color: '#23C27B', fontSize: 13 }} />
+              <span>{oposicion.provincia}</span>
             </div>
-            <Tooltip title={oposicion.tipo === 'Oferta' ? 'Estará disponible en el momento que esté publicada la convocatoria' : ''}>
-              <Button
-                type="primary"
-                icon={oposicion.tipo === 'Oferta' ? <LockOutlined /> : <BookOutlined />}
-                className={oposicion.tieneTemarioListo ? "guardar-btn" : "solicitar-btn"}
-                onClick={handleButtonClick}
-                disabled={oposicion.tipo === 'Oferta'}
-                block
-              >
-                {oposicion.tieneTemarioListo ? "Agregar a mis Convocatorias" : "Solicitar Temario"}
-              </Button>
-            </Tooltip>
-          </motion.div>
-        </Card>
+          </Tooltip>
+
+          <Tooltip title="Fecha de Convocatoria">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#DFF5EC', fontSize: 12 }}>
+              <CalendarOutlined style={{ color: '#f59e0b', fontSize: 13 }} />
+              <span>{new Date(oposicion.fechaConvocatoria).toLocaleDateString('es-ES')}</span>
+            </div>
+          </Tooltip>
+
+          <Tooltip title="Plazas Disponibles">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#DFF5EC', fontSize: 12 }}>
+              <TeamOutlined style={{ color: '#23C27B', fontSize: 13 }} />
+              <span>{oposicion.plazas} plazas</span>
+            </div>
+          </Tooltip>
+        </div>
+
+        {/* CTA */}
+        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Tooltip title={isOferta ? 'Disponible cuando se publique la convocatoria' : ''}>
+            <button
+              onClick={handleButtonClick}
+              disabled={isOferta}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: '#1E3A5F',
+                color: oposicion.tieneTemarioListo ? '#23C27B' : '#D0E4F7',
+                border: oposicion.tieneTemarioListo ? '1px solid rgba(35,194,123,0.6)' : '1px solid rgba(35,194,123,0.35)',
+                borderRadius: 8, padding: '7px 14px',
+                fontSize: 12, fontWeight: 600, cursor: isOferta ? 'not-allowed' : 'pointer',
+                opacity: isOferta ? 0.5 : 1,
+                transition: 'color 0.2s, border-color 0.2s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {isOferta ? <LockOutlined /> : oposicion.tieneTemarioListo ? <CheckCircleOutlined style={{ color: '#23C27B' }} /> : <BookOutlined />}
+              {oposicion.tieneTemarioListo ? 'Ver Convocatoria' : 'Solicitar Temario'}
+            </button>
+          </Tooltip>
+
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            color: hovered ? '#23C27B' : 'rgba(255,255,255,0.3)',
+            fontSize: 12, fontWeight: 600, transition: 'color 0.2s',
+          }}>
+            Ver detalle <RightOutlined style={{ fontSize: 10 }} />
+          </span>
+        </div>
+
+        <style>{`
+          @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+          }
+        `}</style>
       </motion.div>
 
       <OposicionDetailModal

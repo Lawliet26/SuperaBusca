@@ -25,7 +25,7 @@
 .temarios-title {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #5BE4EB;
+  color: #23C27B;
   margin-bottom: 0.5rem;
 }
 
@@ -61,7 +61,7 @@
 .temarios-loading-spinner {
   width: 2.5rem;
   height: 2.5rem;
-  color: #5BE4EB;
+  color: #23C27B;
   animation: spin 1s linear infinite;
 }
 
@@ -203,7 +203,7 @@
 
 .estado-tag--info {
   background-color: rgba(59, 130, 246, 0.2);
-  color: #5BE4EB;
+  color: #23C27B;
 }
 
 .estado-tag--warning {
@@ -281,7 +281,7 @@
 }
 
 .temarios-container .recurso-link:hover {
-  color: #8AEEF3;
+  color: #DFF5EC;
 }
 
 .temarios-container .recurso-link:hover .recurso-filename {
@@ -291,7 +291,7 @@
 .temarios-container .recurso-icon {
   width: 1rem;
   height: 1rem;
-  color: #5BE4EB;
+  color: #23C27B;
   flex-shrink: 0;
 }
 

@@ -8,6 +8,22 @@
   overflow: hidden;
 }
 
+.isotipo-container {
+  position: absolute;
+  right: -350px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.isotipo {
+  width: 1200px;
+  height: 1200px;
+  object-fit: contain;
+  opacity: 0.15;
+}
+
 .login-background {
   position: absolute;
   top: 0;
@@ -20,7 +36,7 @@
 .floating-shape {
   position: absolute;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(22, 37, 58, 0.3) 0%, rgba(91, 228, 235, 0.3) 100%);
+  background: linear-gradient(135deg, rgba(30, 58, 95, 0.3) 0%, rgba(35, 194, 123, 0.3) 100%);
   filter: blur(40px);
 }
 
@@ -37,7 +53,7 @@
   align-items: center;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .login-logo {
@@ -49,7 +65,7 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 24px;
-  box-shadow: 0 10px 30px rgba(91, 228, 235, 0.4);
+  box-shadow: 0 10px 30px rgba(35, 194, 123, 0.4);
 }
 
 .login-logo-icon {
@@ -85,7 +101,7 @@
 .login-input:hover,
 .login-input:focus {
   border-color: var(--primary-purple-light) !important;
-  box-shadow: 0 0 0 2px rgba(91, 228, 235, 0.2) !important;
+  box-shadow: 0 0 0 2px rgba(35, 194, 123, 0.2) !important;
 }
 
 .login-input .ant-input {
@@ -109,17 +125,18 @@
 .login-button {
   height: 52px !important;
   border-radius: 12px !important;
-  background: #16253A;
+  background: #1E3A5F !important;
   border: none !important;
   font-size: 16px !important;
   font-weight: 600 !important;
-  box-shadow: 0 8px 24px rgba(28, 63, 65, 0.4) !important;
+  color: #F0F5FF !important;
+  box-shadow: 0 8px 24px rgba(30, 58, 95, 0.5) !important;
   transition: all 0.3s ease !important;
 }
 
 .login-button:hover {
-  background: var(--gradient-primary) !important;
-  box-shadow: 0 12px 32px rgba(91, 228, 235, 0.5) !important;
+  background: #2A4F82 !important;
+  box-shadow: 0 12px 32px rgba(30, 58, 95, 0.5) !important;
   transform: translateY(-2px);
 }
 
