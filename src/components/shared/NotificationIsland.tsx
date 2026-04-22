@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import {
   CheckCircleFilled,
   CloseCircleFilled,
@@ -25,20 +25,18 @@ const config: Record<NotifyType, { icon: React.ReactNode; color: string; bg: str
   info:    { icon: <InfoCircleFilled />,          color: '#60a5fa', bg: 'rgba(96,165,250,0.12)' },
 };
 
-const islandVariants = {
+const islandVariants: Variants = {
   initial: {
     opacity: 0,
     scaleX: 0.35,
     scaleY: 0.2,
     y: -12,
-    borderRadius: 9999,
   },
   animate: {
     opacity: 1,
     scaleX: 1,
     scaleY: 1,
     y: 0,
-    borderRadius: 14,
     transition: {
       type: 'spring' as const,
       stiffness: 460,
@@ -51,7 +49,6 @@ const islandVariants = {
     scaleY: 0.15,
     scaleX: 0.5,
     y: -10,
-    borderRadius: 9999,
     transition: { duration: 0.22, ease: 'easeIn' },
   },
 };
@@ -121,6 +118,7 @@ export const NotificationIsland = () => {
               style={{
                 position: 'relative',
                 overflow: 'hidden',
+                borderRadius: 14,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,

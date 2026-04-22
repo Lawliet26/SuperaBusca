@@ -43,10 +43,13 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
 
   const handleButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    const hasTemario = oposicion.tieneTemarioListo;
     Modal.confirm({
-      title: '¿Solicitar temario?',
-      content: `Se solicitará el temario para "${oposicion.titulo}". ¿Deseas continuar?`,
-      okText: 'Confirmar',
+      title: hasTemario ? '¿Agregar a mis Convocatorias?' : '¿Solicitar temario?',
+      content: hasTemario
+        ? `"${oposicion.titulo}" tiene el temario listo. ¿Querés agregarla a tus convocatorias activas?`
+        : `Se solicitará el temario para "${oposicion.titulo}". ¿Deseas continuar?`,
+      okText: hasTemario ? 'Agregar' : 'Confirmar',
       cancelText: 'Cancelar',
       onOk: () => onSolicitarTemario(oposicion.id),
     });

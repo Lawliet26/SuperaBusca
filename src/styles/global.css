@@ -203,10 +203,6 @@ body {
   border-bottom: 1px solid var(--border-color) !important;
 }
 
-.ant-modal-title {
-  color: var(--text-primary) !important;
-}
-
 .ant-modal-close-x {
   color: var(--text-secondary) !important;
 }
