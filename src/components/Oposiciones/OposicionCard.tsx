@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Tooltip, Modal } from 'antd';
+import { Tooltip, Modal, Button, Upload } from 'antd';
+import type { UploadFile } from 'antd';
 import {
   CalendarOutlined,
   EnvironmentOutlined,
@@ -10,6 +11,9 @@ import {
   RightOutlined,
   FileTextOutlined,
   CheckCircleOutlined,
+  UploadOutlined,
+  FilePdfOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons';
 import { Oposicion } from '../../types';
 import { OposicionDetailModal } from './OposicionDetailModal';
@@ -17,7 +21,7 @@ import { OposicionDetailModal } from './OposicionDetailModal';
 interface OposicionCardProps {
   oposicion: Oposicion;
   index: number;
-  onSolicitarTemario: (id: string) => void;
+  onSolicitarTemario: (id: string, file: File) => Promise<void>;
 }
 
 const estadoConfig: Record<string, { color: string; bg: string; label: string; pulse: boolean }> = {
@@ -34,25 +38,42 @@ const tipoConfig: Record<string, { color: string; bg: string }> = {
 const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolicitarTemario }) => {
   const [hovered, setHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const estado = estadoConfig[oposicion.estado] ?? { color: '#94a3b8', bg: 'rgba(148,163,184,0.12)', label: oposicion.estado, pulse: false };
   const tipo = tipoConfig[oposicion.tipo] ?? tipoConfig.Oferta;
   const isOferta = oposicion.tipo === 'Oferta';
+  const hasTemario = oposicion.tieneTemarioListo;
 
   const handleCardClick = () => setIsModalOpen(true);
 
   const handleButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const hasTemario = oposicion.tieneTemarioListo;
-    Modal.confirm({
-      title: hasTemario ? '¿Agregar a mis Convocatorias?' : '¿Solicitar temario?',
-      content: hasTemario
-        ? `"${oposicion.titulo}" tiene el temario listo. ¿Querés agregarla a tus convocatorias activas?`
-        : `Se solicitará el temario para "${oposicion.titulo}". ¿Deseas continuar?`,
-      okText: hasTemario ? 'Agregar' : 'Confirmar',
-      cancelText: 'Cancelar',
-      onOk: () => onSolicitarTemario(oposicion.id),
-    });
+    setPdfFile(null);
+    setFileList([]);
+    setIsUploadModalOpen(true);
+  };
+
+  const handleConfirm = async () => {
+    if (!pdfFile) return;
+    setSubmitting(true);
+    try {
+      await onSolicitarTemario(oposicion.id, pdfFile);
+      setIsUploadModalOpen(false);
+      setPdfFile(null);
+      setFileList([]);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsUploadModalOpen(false);
+    setPdfFile(null);
+    setFileList([]);
   };
 
   return (
@@ -166,8 +187,8 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
                 background: '#1E3A5F',
-                color: oposicion.tieneTemarioListo ? '#23C27B' : '#D0E4F7',
-                border: oposicion.tieneTemarioListo ? '1px solid rgba(35,194,123,0.6)' : '1px solid rgba(35,194,123,0.35)',
+                color: hasTemario ? '#23C27B' : '#D0E4F7',
+                border: hasTemario ? '1px solid rgba(35,194,123,0.6)' : '1px solid rgba(35,194,123,0.35)',
                 borderRadius: 8, padding: '7px 14px',
                 fontSize: 12, fontWeight: 600, cursor: isOferta ? 'not-allowed' : 'pointer',
                 opacity: isOferta ? 0.5 : 1,
@@ -175,8 +196,8 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
                 whiteSpace: 'nowrap',
               }}
             >
-              {isOferta ? <LockOutlined /> : oposicion.tieneTemarioListo ? <CheckCircleOutlined style={{ color: '#23C27B' }} /> : <BookOutlined />}
-              {oposicion.tieneTemarioListo ? 'Ver Convocatoria' : 'Solicitar Temario'}
+              {isOferta ? <LockOutlined /> : hasTemario ? <CheckCircleOutlined style={{ color: '#23C27B' }} /> : <BookOutlined />}
+              {hasTemario ? 'Ver Convocatoria' : 'Solicitar Temario'}
             </button>
           </Tooltip>
 
@@ -197,11 +218,99 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
         `}</style>
       </motion.div>
 
+      {/* Modal de detalle */}
       <OposicionDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         oposicion={oposicion}
       />
+
+      {/* Modal de solicitud con upload de comprobante */}
+      <Modal
+        open={isUploadModalOpen}
+        onCancel={handleCancel}
+        title={
+          <span style={{ color: '#1a2332', fontWeight: 700 }}>
+            {hasTemario ? '¿Agregar a mis Convocatorias?' : '¿Solicitar temario?'}
+          </span>
+        }
+        footer={[
+          <Button key="cancel" onClick={handleCancel}>
+            Cancelar
+          </Button>,
+          <Button
+            key="confirm"
+            type="primary"
+            loading={submitting}
+            disabled={!pdfFile}
+            onClick={handleConfirm}
+            style={{ background: '#1E3A5F', borderColor: '#1E3A5F' }}
+          >
+            {hasTemario ? 'Agregar' : 'Confirmar'}
+          </Button>,
+        ]}
+        width={440}
+      >
+        <p style={{ color: '#4a5568', marginBottom: 20, fontSize: 14 }}>
+          {hasTemario
+            ? `"${oposicion.titulo}" tiene el temario listo. Para continuar, adjuntá el comprobante de pago de tasas.`
+            : `Para solicitar el temario de "${oposicion.titulo}", adjuntá el comprobante de pago de tasas.`}
+        </p>
+
+        <div style={{
+          border: `2px dashed ${pdfFile ? 'rgba(35,194,123,0.6)' : 'rgba(0,0,0,0.15)'}`,
+          borderRadius: 10,
+          padding: '16px',
+          background: pdfFile ? 'rgba(35,194,123,0.04)' : 'rgba(0,0,0,0.02)',
+          transition: 'all 0.2s',
+        }}>
+          {pdfFile ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <FilePdfOutlined style={{ fontSize: 22, color: '#ef4444' }} />
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: '#1a2332' }}>{pdfFile.name}</div>
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                    {(pdfFile.size / 1024).toFixed(1)} KB
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => { setPdfFile(null); setFileList([]); }}
+                style={{
+                  border: 'none', background: 'transparent', cursor: 'pointer',
+                  color: '#94a3b8', padding: 4, display: 'flex', alignItems: 'center',
+                }}
+              >
+                <DeleteOutlined />
+              </button>
+            </div>
+          ) : (
+            <Upload
+              accept=".pdf"
+              maxCount={1}
+              showUploadList={false}
+              fileList={fileList}
+              beforeUpload={(file) => {
+                setPdfFile(file as unknown as File);
+                setFileList([{ uid: '-1', name: file.name, status: 'done' }]);
+                return false;
+              }}
+              style={{ display: 'block', width: '100%' }}
+            >
+              <div style={{ textAlign: 'center', cursor: 'pointer', padding: '8px 0', width: '100%' }}>
+                <UploadOutlined style={{ fontSize: 24, color: '#94a3b8', marginBottom: 8, display: 'block' }} />
+                <div style={{ fontSize: 13, color: '#4a5568', fontWeight: 500 }}>
+                  Clic para seleccionar el comprobante de pago
+                </div>
+                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>
+                  Solo archivos PDF
+                </div>
+              </div>
+            </Upload>
+          )}
+        </div>
+      </Modal>
     </>
   );
 };

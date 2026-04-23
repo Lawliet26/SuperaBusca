@@ -105,20 +105,14 @@ const Oposiciones: React.FC = () => {
     }
   };
 
-  const handleSolicitarTemario = async (id: string) => {
+  const handleSolicitarTemario = async (id: string, file: File) => {
     try {
-      const payload = {
-        user_id: parseInt(user?.id || '0'),
-        oposicion_id: parseInt(id)
-      };
-
-      const response = await oposicionesService.compararTemario(payload);
-
-      if (typeof response === 'string') {
-        notify.info(response);
-        return;
-      }
-
+      await oposicionesService.compararTemario(
+        parseInt(user?.id || '0'),
+        parseInt(id),
+        file
+      );
+      notify.success('Solicitud enviada correctamente');
     } catch (error) {
       notify.error('Error al solicitar el temario');
     }

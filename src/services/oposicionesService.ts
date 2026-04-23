@@ -28,7 +28,6 @@ interface OposicionAPI {
 interface CompararTemarioPayload {
   user_id: number;
   oposicion_id: number;
-
 }
 
 interface UpdateOposicionPayload {
@@ -109,9 +108,15 @@ export const oposicionesService = {
   //   }
   // },
 
-  async compararTemario(payload: CompararTemarioPayload): Promise<void> {
+  async compararTemario(userId: number, oposicionId: number, pagoPdf: File): Promise<void> {
     try {
-      const response = await api.post('/comparar-temario', payload);
+      const formData = new FormData();
+      formData.append('user_id', userId.toString());
+      formData.append('oposicion_id', oposicionId.toString());
+      formData.append('pago_tazas_pdf', pagoPdf);
+      const response = await api.post('/comparar-temario', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       return response.data;
     } catch (error) {
       console.error('Error comparando temario:', error);
