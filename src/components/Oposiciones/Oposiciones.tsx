@@ -31,7 +31,7 @@ const Oposiciones: React.FC = () => {
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(12);
+  const [pageSize, setPageSize] = useState(20);
   const [total, setTotal] = useState(0);
 
   // Cargar catálogos (provincias y categorías)
@@ -309,10 +309,9 @@ const Oposiciones: React.FC = () => {
                 setCurrentPage(page);
                 setPageSize(size || 12);
               }}
-              showSizeChanger={window.innerWidth > 768}
-              showQuickJumper={window.innerWidth > 768}
-              pageSizeOptions={['12', '24', '48']}
-              showTotal={(total, range) => window.innerWidth > 480 ? `${range[0]}-${range[1]} de ${total} oposiciones` : `${range[0]}-${range[1]} / ${total}`}
+              showSizeChanger
+              showQuickJumper={false}
+              pageSizeOptions={['20', '48', '100']}
               className="oposiciones-pagination"
               responsive
             />
