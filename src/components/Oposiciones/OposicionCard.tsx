@@ -137,7 +137,7 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
             borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 600,
           }}>
             <FileTextOutlined style={{ fontSize: 10 }} />
-            {oposicion.categoria || oposicion.tipo}
+            {oposicion.tipo}
           </span>
         </div>
 

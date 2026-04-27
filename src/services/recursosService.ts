@@ -29,6 +29,15 @@ export const recursosService = {
     }
   },
 
+  async deleteRecurso(recursoId: number): Promise<void> {
+    try {
+      await api.delete('/borrar-recursos', { params: { recurso_id: recursoId } });
+    } catch (error) {
+      console.error('Error eliminando recurso:', error);
+      throw error;
+    }
+  },
+
   async getRecursosByOposicion(oposicionId: number): Promise<RecursoGet[]> {
     try {
       const response = await api.get<RecursosResponse[]>(

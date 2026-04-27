@@ -34,6 +34,7 @@ export interface Recurso {
 }
 
 export interface RecursoGet {
+  id?: number;
   titulo: string;
   url: string;
   mimetype: string;

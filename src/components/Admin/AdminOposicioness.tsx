@@ -38,7 +38,10 @@ import {
   UploadOutlined,
   FileTextOutlined,
   FolderOpenOutlined,
-  SolutionOutlined
+  SolutionOutlined,
+  DeleteOutlined,
+  WarningOutlined,
+  SwapOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import type { InputRef } from 'antd';
@@ -119,9 +122,12 @@ const AdminOposiciones: React.FC = () => {
   const [recursoViewList, setRecursoViewList] = useState<any[]>([]);
   const [recursoViewLoading, setRecursoViewLoading] = useState(false);
   const [recursoViewTitulo, setRecursoViewTitulo] = useState('');
+  const [recursoViewOposicionId, setRecursoViewOposicionId] = useState<number | null>(null);
+  const [relacionWarningVisible, setRelacionWarningVisible] = useState(false);
 
   const openRecursoView = async (record: OposicionAdmin) => {
     setRecursoViewTitulo(record.titulo);
+    setRecursoViewOposicionId(record.id);
     setRecursoViewModal(true);
     setRecursoViewLoading(true);
     try {
@@ -131,6 +137,43 @@ const AdminOposiciones: React.FC = () => {
       notify.error('Error al cargar los recursos');
     } finally {
       setRecursoViewLoading(false);
+    }
+  };
+
+  const handleDeleteRecurso = (recurso: any) => {
+    const titulo = (recurso.titulo ?? '').toLowerCase();
+    const esRelacion = titulo.includes('relaci') && titulo.includes('temario');
+    if (esRelacion) {
+      setRelacionWarningVisible(true);
+      return;
+    }
+    Modal.confirm({
+      title: '¿Eliminar recurso?',
+      content: `Se eliminará "${recurso.titulo}". Esta acción no se puede deshacer.`,
+      okText: 'Eliminar',
+      okButtonProps: { danger: true },
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        try {
+          await recursosService.deleteRecurso(recurso.id);
+          setRecursoViewList(prev => prev.filter(r => r.id !== recurso.id));
+          notify.success('Recurso eliminado correctamente');
+        } catch {
+          notify.error('Error al eliminar el recurso');
+        }
+      },
+    });
+  };
+
+  const handleIrAReemplazar = () => {
+    setRelacionWarningVisible(false);
+    setRecursoViewModal(false);
+    if (recursoViewOposicionId) {
+      setSelectedOposicionId(recursoViewOposicionId);
+      setRecursoType('relacion');
+      setFileList([]);
+      recursoForm.resetFields();
+      setAddRecursoModal(true);
     }
   };
 
@@ -1433,7 +1476,7 @@ const AdminOposiciones: React.FC = () => {
                   ) : (
                     <Table
                       dataSource={recursoViewList}
-                      rowKey={(r, i) => String(i)}
+                      rowKey={(r) => String(r.id ?? r.titulo)}
                       pagination={false}
                       size="small"
                       columns={[
@@ -1461,9 +1504,72 @@ const AdminOposiciones: React.FC = () => {
                             </Button>
                           ) : '—',
                         },
+                        {
+                          title: '',
+                          key: 'delete',
+                          width: 48,
+                          render: (_, recurso) => {
+                            const titulo = (recurso.titulo ?? '').toLowerCase();
+                            const esRelacion = titulo.includes('relaci') && titulo.includes('temario');
+                            return esRelacion ? (
+                              <Tooltip title="Reemplazar relación de temario">
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  icon={<SwapOutlined style={{ color: '#d97706' }} />}
+                                  onClick={() => handleDeleteRecurso(recurso)}
+                                />
+                              </Tooltip>
+                            ) : (
+                              <Tooltip title="Eliminar recurso">
+                                <Button
+                                  type="text"
+                                  danger
+                                  size="small"
+                                  icon={<DeleteOutlined />}
+                                  onClick={() => handleDeleteRecurso(recurso)}
+                                />
+                              </Tooltip>
+                            );
+                          },
+                        },
                       ]}
                     />
                   )}
+                </Modal>
+
+                {/* Modal advertencia relación de temario */}
+                <Modal
+                  open={relacionWarningVisible}
+                  onCancel={() => setRelacionWarningVisible(false)}
+                  footer={[
+                    <Button key="cancel" onClick={() => setRelacionWarningVisible(false)}>
+                      Cancelar
+                    </Button>,
+                    <Button
+                      key="replace"
+                      type="primary"
+                      icon={<SwapOutlined />}
+                      onClick={handleIrAReemplazar}
+                      style={{ background: '#1E3A5F', borderColor: '#1E3A5F' }}
+                    >
+                      Ir a reemplazar archivo
+                    </Button>,
+                  ]}
+                  title={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#d97706' }}>
+                      <WarningOutlined /> No se puede eliminar este recurso
+                    </span>
+                  }
+                  width={480}
+                  className="admin-modal"
+                >
+                  <p style={{ color: '#4a5568', marginBottom: 8 }}>
+                    La <strong>Relación de Temario</strong> es un recurso estructural del sistema. Eliminarlo directamente rompería el flujo de generación de temarios.
+                  </p>
+                  <p style={{ color: '#4a5568' }}>
+                    Para actualizarlo, debés <strong>reemplazarlo</strong> subiendo un nuevo archivo PDF. Hacé clic en <em>"Ir a reemplazar archivo"</em> para continuar.
+                  </p>
                 </Modal>
 
                 <Modal
