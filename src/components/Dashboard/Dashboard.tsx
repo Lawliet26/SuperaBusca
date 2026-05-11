@@ -4,6 +4,7 @@ import Header from '../Layout/Header';
 import Oposiciones from '../Oposiciones/Oposiciones';
 import Revisiones from '../Revisiones/Revisiones';
 import Correcciones from '../Correcciones/Correcciones';
+import RevisionManual from '../RevisionManual/RevisionManual';
 import './Dashboard.css';
 import Temarios from '../Temarios/Temarios';
 import AdminOposiciones from '../Admin/AdminOposicioness';
@@ -44,6 +45,8 @@ const Dashboard: React.FC = () => {
         return <Revisiones />;
       case 'correcciones':
         return <Correcciones />;
+      case 'revision-manual':
+        return <RevisionManual />;
       case 'misconvocatorias':
         return <Temarios />;
       case 'admin':

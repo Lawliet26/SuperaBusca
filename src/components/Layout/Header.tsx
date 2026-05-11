@@ -7,7 +7,8 @@ import {
   FileSearchOutlined,
   EditOutlined,
   SnippetsOutlined,
-  UserOutlined
+  UserOutlined,
+  AuditOutlined
 } from '@ant-design/icons';
 import { useAuth } from '../../context/AuthContext';
 import './Header.css';
@@ -30,8 +31,9 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
 
   const navItems = [
     { key: 'oposiciones', label: 'Oposiciones', icon: <BookOutlined />, visible: true },
-    { key: 'revisiones', label: 'Revisiones', icon: <FileSearchOutlined />, visible: isProfesor || isAdmin },
-    { key: 'correcciones', label: 'Correcciones', icon: <EditOutlined />, visible: isProfesor || isAdmin },
+    { key: 'revisiones', label: 'Revisiones', icon: <FileSearchOutlined />, visible: false },
+    { key: 'correcciones', label: 'Correcciones', icon: <EditOutlined />, visible: false },
+    { key: 'revision-manual', label: 'Revisión Manual', icon: <AuditOutlined />, visible: isProfesor || isAdmin },
     { key: 'misconvocatorias', label: 'Mis Convocatorias', icon: <SnippetsOutlined />, visible: true },
     { key: 'admin', label: 'Administrador', icon: <EditOutlined />, visible: isAdmin || isProfesor },
   ].filter(item => item.visible);

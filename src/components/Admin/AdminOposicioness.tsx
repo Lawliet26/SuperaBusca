@@ -914,27 +914,6 @@ const AdminOposiciones: React.FC = () => {
                 className="edit-btn"
               />
             </Tooltip>
-            <Tooltip title={
-                !record.url_bases_oficiales
-                  ? 'Para solicitar el temario, la oposición debe tener una URL de bases oficiales'
-                  : 'Solicitar temario oficial para esta oposición'
-              }>
-              <Button
-                type="text"
-                icon={<SolutionOutlined />}
-                onClick={() => {
-                  Modal.confirm({
-                    title: '¿Solicitar temario?',
-                    content: `Se solicitará el temario para "${record.titulo}". ¿Deseas continuar?`,
-                    okText: 'Confirmar',
-                    cancelText: 'Cancelar',
-                    onOk: () => handleSolicitarTemario(record.id),
-                  });
-                }}
-                disabled={editingKey !== null || !record.url_bases_oficiales}
-                className="edit-btn"
-              />
-            </Tooltip>
 
           </Space>
         );
