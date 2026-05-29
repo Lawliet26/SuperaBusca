@@ -279,7 +279,8 @@ const AdminOposiciones: React.FC = () => {
           url_convocatoria: editedRow.url_convocatoria,
           fecha_convocatoria: editedRow.fecha_convocatoria,
           fecha_fin: editedRow.fecha_fin,
-          observaciones: editedRow.observaciones
+          observaciones: editedRow.observaciones,
+          compania: editedRow.compania
         };
       await oposicionesService.updateOposicion(updatePayload);
 
@@ -320,7 +321,8 @@ const AdminOposiciones: React.FC = () => {
         categoria_id: values.categoria_id,
         estado: values.estado,
         fecha_fin: values.fecha_fin ? values.fecha_fin.format('YYYY-MM-DD') : undefined,
-        observaciones: values.observaciones
+        observaciones: values.observaciones,
+        compania: values.compania
       });
 
       notify.success('Oposición creada correctamente');
@@ -850,6 +852,37 @@ const AdminOposiciones: React.FC = () => {
           <Tooltip title={record.observaciones}>
             <Text ellipsis>{record.observaciones === null || record.observaciones === undefined || record.observaciones === 'null' ? '-' : record.observaciones}</Text>
           </Tooltip>
+        ) : (
+          <Text type="secondary">-</Text>
+        );
+      }
+    },
+    {
+      title: 'Línea',
+      dataIndex: 'compania',
+      key: 'compania',
+      width: 140,
+      render: (_, record) => {
+        if (editingKey === record.id && !isProfesor) {
+          return (
+            <Select
+              value={editedRow.compania}
+              onChange={(val) => handleFieldChange('compania', val)}
+              className="admin-select"
+              allowClear
+              placeholder="Línea"
+              options={[
+                { value: 'Supera', label: 'Supera' },
+                { value: 'Patrio', label: 'Patrio' },
+                { value: 'Otro', label: 'Otro' },
+              ]}
+            />
+          );
+        }
+        return record.compania ? (
+          <Tag color={record.compania === 'Supera' ? 'blue' : record.compania === 'Patrio' ? 'purple' : 'default'}>
+            {record.compania}
+          </Tag>
         ) : (
           <Text type="secondary">-</Text>
         );
@@ -1412,6 +1445,21 @@ const AdminOposiciones: React.FC = () => {
                         label="Fecha de Fin"
                       >
                         <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
+                      </Form.Item>
+
+                      <Form.Item
+                        name="compania"
+                        label="Línea"
+                      >
+                        <Select
+                          placeholder="Seleccionar línea"
+                          allowClear
+                          options={[
+                            { value: 'Supera', label: 'Supera' },
+                            { value: 'Patrio', label: 'Patrio' },
+                            { value: 'Otro', label: 'Otro' },
+                          ]}
+                        />
                       </Form.Item>
 
                       <Form.Item

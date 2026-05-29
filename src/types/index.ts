@@ -80,6 +80,7 @@ export interface OposicionAdmin {
   fecha_fin?: string;
   observaciones?: string;
   ccaa?: string;
+  compania?: string;
 }
 export interface Categoria {
   id: number;

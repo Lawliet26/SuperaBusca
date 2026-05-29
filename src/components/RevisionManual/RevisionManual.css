@@ -2,6 +2,62 @@
   padding: 0;
 }
 
+.rm-toolbar {
+  margin-top: 24px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rm-search {
+  max-width: 300px;
+  flex: 1 1 200px;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 10px !important;
+  color: var(--text-primary) !important;
+}
+
+.rm-search input {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+}
+
+.rm-search .anticon {
+  color: var(--text-muted) !important;
+}
+
+.rm-date-picker {
+  flex: 1 1 240px;
+  max-width: 320px;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 10px !important;
+}
+
+.rm-date-picker input {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+}
+
+.rm-date-picker .anticon {
+  color: var(--text-muted) !important;
+}
+
+.rm-clear-btn {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: var(--text-muted) !important;
+  border-radius: 8px !important;
+  flex-shrink: 0;
+}
+
+.rm-clear-btn:hover {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: var(--text-primary) !important;
+}
+
 .rm-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -40,10 +96,23 @@
 .rm-card-meta {
   color: var(--text-muted);
   font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
 }
 
 .rm-card-id {
   opacity: 0.7;
+}
+
+.rm-card-fecha {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #23C27B;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .rm-card-actions {

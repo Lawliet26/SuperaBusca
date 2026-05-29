@@ -44,6 +44,7 @@ interface UpdateOposicionPayload {
   fecha_convocatoria?: string;
   fecha_fin?: string;
   observaciones?: string;
+  compania?: string;
 }
 
 interface CreateOposicionPayload {
@@ -62,6 +63,7 @@ interface CreateOposicionPayload {
   estado: string;
   fecha_fin?: string;
   observaciones?: string;
+  compania?: string;
 }
 
 interface OposicionesAdminFilters {
@@ -73,6 +75,7 @@ interface OposicionesAdminFilters {
   tipo?: string;
   fecha_inicio?: string;
   fecha_fin?: string;
+  compania?: string;
   limit?: number;
   offset?: number;
 }
@@ -146,6 +149,7 @@ export const oposicionesService = {
       if (filters?.tipo) params.tipo = filters.tipo;
       if (filters?.fecha_inicio) params.fecha_inicio = filters.fecha_inicio;
       if (filters?.fecha_fin) params.fecha_fin = filters.fecha_fin;
+      if (filters?.compania) params.compania = filters.compania;
 
       params.limit = filters?.limit || 10;
       params.offset = filters?.offset || 0;
@@ -177,7 +181,8 @@ export const oposicionesService = {
         nombre_municipio: item.nombre_municipio,
         fecha_fin: item.fecha_fin,
         observaciones: item.observaciones,
-        ccaa: item.ccaa
+        ccaa: item.ccaa,
+        compania: item.compania
       }));
 
       return { data: mappedData, total: totalCount };

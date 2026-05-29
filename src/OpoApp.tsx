@@ -4,14 +4,23 @@ import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './components/Login/Login';
 import Dashboard from './components/Dashboard/Dashboard';
+import MantenimientoPage from './components/Mantenimiento/MantenimientoPage';
+import MantenimientoBanner from './components/Mantenimiento/MantenimientoBanner';
 import { NotificationIsland } from './components/shared/NotificationIsland';
+import { useMantenimiento } from './hooks/useMantenimiento';
 import './styles/global.css';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const { estado, loading, isActivo, isProximo, refresh } = useMantenimiento();
+
+  if (!loading && isActivo && estado) {
+    return <MantenimientoPage estado={estado} onRefresh={refresh} />;
+  }
 
   return (
     <>
+      {isProximo && estado && <MantenimientoBanner estado={estado} />}
       <NotificationIsland />
       <AnimatePresence mode="wait">
         {isAuthenticated ? <Dashboard /> : <Login />}

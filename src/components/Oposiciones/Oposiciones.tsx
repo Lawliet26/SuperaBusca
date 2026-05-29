@@ -28,6 +28,7 @@ const Oposiciones: React.FC = () => {
   const [provinciaFilter, setProvinciaFilter] = useState<number | null>(null);
   const [tipoFilter, setTipoFilter] = useState<string>('Convocatoria');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [companiaFilter, setCompaniaFilter] = useState<string | null>(null);
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,7 +56,7 @@ const Oposiciones: React.FC = () => {
   // Cargar oposiciones con filtros
   useEffect(() => {
     fetchOposiciones();
-  }, [currentPage, pageSize, categoriaFilter, provinciaFilter, tipoFilter, searchTerm]);
+  }, [currentPage, pageSize, categoriaFilter, provinciaFilter, tipoFilter, searchTerm, companiaFilter]);
 
   const fetchOposiciones = async () => {
     try {
@@ -67,6 +68,7 @@ const Oposiciones: React.FC = () => {
         provincia_id: provinciaFilter || undefined,
         categoria_id: categoriaFilter || undefined,
         tipo: tipoFilter || undefined,
+        compania: companiaFilter || undefined,
         limit: pageSize,
         offset
       };
@@ -127,10 +129,11 @@ const Oposiciones: React.FC = () => {
     setCategoriaFilter(null);
     setProvinciaFilter(null);
     setTipoFilter('Oferta');
+    setCompaniaFilter(null);
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = searchTerm || categoriaFilter || provinciaFilter || (tipoFilter && tipoFilter !== 'Oferta');
+  const hasActiveFilters = searchTerm || categoriaFilter || provinciaFilter || companiaFilter || (tipoFilter && tipoFilter !== 'Oferta');
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -243,6 +246,20 @@ const Oposiciones: React.FC = () => {
             </Select>
           </div>
 
+          <div style={{ flex: '1 1 140px', minWidth: 130 }}>
+            <Select
+              placeholder="Línea"
+              value={companiaFilter || undefined}
+              onChange={(value) => { setCompaniaFilter(value); handleFilterChange(); }}
+              allowClear size="large"
+              style={{ width: '100%' }}
+            >
+              <Option value="Supera">Supera</Option>
+              <Option value="Patrio">Patrio</Option>
+              <Option value="Otro">Otro</Option>
+            </Select>
+          </div>
+
           {hasActiveFilters && (
             <Button
               onClick={clearFilters}
@@ -271,7 +288,8 @@ const Oposiciones: React.FC = () => {
                 searchTerm && 'Búsqueda',
                 tipoFilter && tipoFilter !== 'Oferta' && 'Tipo',
                 provinciaFilter && 'Provincia',
-                categoriaFilter && 'Categoría'
+                categoriaFilter && 'Categoría',
+                companiaFilter && 'Línea'
               ].filter(Boolean).join(', ')} activo(s)
             </Tag>
           )}

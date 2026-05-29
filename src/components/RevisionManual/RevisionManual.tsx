@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Button, Modal, Upload, Form, Input, Radio,
-  Table, Tag, Space, Spin, Typography
+  Table, Tag, Space, Spin, Typography, DatePicker
 } from 'antd';
 import {
   UploadOutlined, FileAddOutlined, FolderOpenOutlined,
   LinkOutlined, FileTextOutlined, DeleteOutlined,
-  SwapOutlined, WarningOutlined
+  SwapOutlined, WarningOutlined, CalendarOutlined,
+  SearchOutlined, FilterOutlined
 } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
+import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import { notify } from '@/utils/notify';
 import { recursosService } from '../../services/recursosService';
 import api from '../../config/api';
@@ -21,11 +24,20 @@ interface RevisionManualItem {
   temario_id: number;
   oposicion_id: number;
   oposicion_nombre: string;
+  fecha_primera_solicitud: string;
 }
+
+const formatFecha = (fecha: string) => {
+  const [year, month, day] = fecha.split('-');
+  const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  return `${parseInt(day)} ${meses[parseInt(month) - 1]} ${year}`;
+};
 
 const RevisionManual: React.FC = () => {
   const [items, setItems] = useState<RevisionManualItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState('');
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
 
   // Subir temario modal
   const [subirTemarioModal, setSubirTemarioModal] = useState(false);
@@ -53,7 +65,10 @@ const RevisionManual: React.FC = () => {
       try {
         setLoading(true);
         const response = await api.get<RevisionManualItem[]>('/lista-revisiones');
-        setItems(response.data);
+        const sorted = [...response.data].sort((a, b) =>
+          new Date(b.fecha_primera_solicitud).getTime() - new Date(a.fecha_primera_solicitud).getTime()
+        );
+        setItems(sorted);
       } catch {
         notify.error('Error al cargar las revisiones manuales');
       } finally {
@@ -230,24 +245,73 @@ const RevisionManual: React.FC = () => {
         </motion.p>
       </div>
 
-      {items.length === 0 ? (
-        <div className="rm-empty">No hay revisiones manuales pendientes.</div>
-      ) : (
-        <div className="rm-cards-grid">
-          {items.map((item, index) => (
-            <motion.div
-              key={item.temario_id}
-              className="rm-card"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index }}
-            >
-              <div className="rm-card-content">
-                <h3 className="rm-card-title">{item.oposicion_nombre}</h3>
-                <div className="rm-card-meta">
-                  <span className="rm-card-id">ID Temario: {item.temario_id}</span>
+      <div className="rm-toolbar">
+        <Input
+          placeholder="Buscar por oposición..."
+          prefix={<SearchOutlined />}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          allowClear
+          className="rm-search"
+        />
+        <DatePicker.RangePicker
+          value={dateRange}
+          onChange={(dates) => setDateRange(dates as [Dayjs | null, Dayjs | null] | null)}
+          format="DD/MM/YYYY"
+          placeholder={['Fecha desde', 'Fecha hasta']}
+          allowClear
+          className="rm-date-picker"
+          suffixIcon={<FilterOutlined />}
+        />
+        {(searchText || dateRange) && (
+          <Button
+            size="small"
+            onClick={() => { setSearchText(''); setDateRange(null); }}
+            className="rm-clear-btn"
+          >
+            Limpiar filtros
+          </Button>
+        )}
+      </div>
+
+      {(() => {
+        const filtered = items.filter(i => {
+          const matchesText = i.oposicion_nombre.toLowerCase().includes(searchText.toLowerCase());
+          if (!matchesText) return false;
+          if (dateRange && dateRange[0] && dateRange[1]) {
+            const fechaTs = new Date(i.fecha_primera_solicitud).setHours(0, 0, 0, 0);
+            const fromTs = dateRange[0].startOf('day').valueOf();
+            const toTs = dateRange[1].endOf('day').valueOf();
+            return fechaTs >= fromTs && fechaTs <= toTs;
+          }
+          return true;
+        });
+        const hasFilters = searchText || dateRange;
+        return filtered.length === 0 ? (
+          <div className="rm-empty">
+            {hasFilters ? 'Sin resultados para los filtros aplicados.' : 'No hay revisiones manuales pendientes.'}
+          </div>
+        ) : (
+          <div className="rm-cards-grid">
+            {filtered.map((item, index) => (
+              <motion.div
+                key={item.temario_id}
+                className="rm-card"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 * index }}
+              >
+                <div className="rm-card-content">
+                  <h3 className="rm-card-title">{item.oposicion_nombre}</h3>
+                  <div className="rm-card-meta">
+                    <span className="rm-card-id">ID Temario: {item.temario_id}</span>
+                    {item.fecha_primera_solicitud && (
+                      <span className="rm-card-fecha">
+                        <CalendarOutlined /> {formatFecha(item.fecha_primera_solicitud)}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
               <div className="rm-card-actions">
                 <Button
                   type="primary"
@@ -267,8 +331,9 @@ const RevisionManual: React.FC = () => {
               </div>
             </motion.div>
           ))}
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
       {/* Modal Subir Temario */}
       <Modal
