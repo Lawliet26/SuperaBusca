@@ -28,7 +28,12 @@ const Oposiciones: React.FC = () => {
   const [provinciaFilter, setProvinciaFilter] = useState<number | null>(null);
   const [tipoFilter, setTipoFilter] = useState<string>('Convocatoria');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const [companiaFilter, setCompaniaFilter] = useState<string | null>(null);
+
+  // Quita tildes/acentos: "administracion" matchea "Administración"
+  const normalize = (s: string) =>
+    s.normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,10 +58,19 @@ const Oposiciones: React.FC = () => {
     fetchCatalogs();
   }, []);
 
+  // Debounce: espera 350ms tras el último teclazo antes de buscar
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(normalize(searchTerm));
+      setCurrentPage(1);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   // Cargar oposiciones con filtros
   useEffect(() => {
     fetchOposiciones();
-  }, [currentPage, pageSize, categoriaFilter, provinciaFilter, tipoFilter, searchTerm, companiaFilter]);
+  }, [currentPage, pageSize, categoriaFilter, provinciaFilter, tipoFilter, debouncedSearch, companiaFilter]);
 
   const fetchOposiciones = async () => {
     try {
@@ -64,7 +78,7 @@ const Oposiciones: React.FC = () => {
       const offset = (currentPage - 1) * pageSize;
 
       const filters = {
-        search: searchTerm || undefined,
+        search: debouncedSearch || undefined,
         provincia_id: provinciaFilter || undefined,
         categoria_id: categoriaFilter || undefined,
         tipo: tipoFilter || undefined,
@@ -75,27 +89,31 @@ const Oposiciones: React.FC = () => {
 
       const result = await oposicionesService.getOposicionesAdmin(filters);
 
-      // Mapear los datos de OposicionAdmin a Oposicion
-      const mappedOposiciones: Oposicion[] = result.data.map(item => ({
-        id: item.id.toString(),
-        titulo: item.titulo,
-        descripcion: item.observaciones || `${item.nombre_categoria} - ${item.nombre_provincia}`,
-        categoria: item.nombre_categoria,
-        categoriaId: item.categoria_id,
-        convocante: item.convocante,
-        municipio_id: item.municipio_id,
-        nombre_municipio: item.nombre_municipio,
-        provincia: item.nombre_provincia,
-        provinciaId: item.provincia_id,
-        fechaConvocatoria: item.fecha_convocatoria,
-        fechaFinalizacion: item.fecha_fin,
-        plazas: item.num_plazas,
-        estado: item.estado === 'Abierta' ? 'abierta' : item.estado === 'Cerrada' ? 'cerrada' : 'en curso',
-        urlBasesOficiales: item.url_bases_oficiales,
-        urlConvocatoria: item.url_convocatoria,
-        tieneTemarioListo: item.tiene_temario_listo,
-        tipo: item.tipo
-      }));
+      const ESTADO_ORDEN: Record<string, number> = { Abierta: 0, 'En curso': 1, Cerrada: 2 };
+
+      const mappedOposiciones: Oposicion[] = result.data
+        .slice()
+        .sort((a, b) => (ESTADO_ORDEN[a.estado] ?? 3) - (ESTADO_ORDEN[b.estado] ?? 3))
+        .map(item => ({
+          id: item.id.toString(),
+          titulo: item.titulo,
+          descripcion: item.observaciones || `${item.nombre_categoria} - ${item.nombre_provincia}`,
+          categoria: item.nombre_categoria,
+          categoriaId: item.categoria_id,
+          convocante: item.convocante,
+          municipio_id: item.municipio_id,
+          nombre_municipio: item.nombre_municipio,
+          provincia: item.nombre_provincia,
+          provinciaId: item.provincia_id,
+          fechaConvocatoria: item.fecha_convocatoria,
+          fechaFinalizacion: item.fecha_fin,
+          plazas: item.num_plazas,
+          estado: item.estado === 'Abierta' ? 'abierta' : item.estado === 'Cerrada' ? 'cerrada' : 'en curso',
+          urlBasesOficiales: item.url_bases_oficiales,
+          urlConvocatoria: item.url_convocatoria,
+          tieneTemarioListo: item.tiene_temario_listo,
+          tipo: item.tipo
+        }));
 
 
       setOposiciones(mappedOposiciones);
@@ -126,6 +144,7 @@ const Oposiciones: React.FC = () => {
 
   const clearFilters = () => {
     setSearchTerm('');
+    setDebouncedSearch('');
     setCategoriaFilter(null);
     setProvinciaFilter(null);
     setTipoFilter('Oferta');
