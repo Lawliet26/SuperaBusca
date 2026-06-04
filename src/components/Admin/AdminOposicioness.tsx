@@ -84,6 +84,10 @@ const AdminOposiciones: React.FC = () => {
 
   // Filters
   const [searchText, setSearchText] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  const normalize = (s: string) =>
+    s.normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
 
   const handleGestionarOposicion = (nombre: string) => {
     setSearchText(nombre);
@@ -184,8 +188,16 @@ const AdminOposiciones: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(normalize(searchText));
+      setCurrentPage(1);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  useEffect(() => {
     loadData();
-  }, [currentPage, pageSize, searchText, filterProvincia, filterMunicipio, filterCategoria, filterEstado, filterTipo, filterDateRange]);
+  }, [currentPage, pageSize, debouncedSearch, filterProvincia, filterMunicipio, filterCategoria, filterEstado, filterTipo, filterDateRange]);
 
   const loadCatalogs = async () => {
     try {
@@ -209,7 +221,7 @@ const AdminOposiciones: React.FC = () => {
       const offset = (currentPage - 1) * pageSize;
 
       const filters = {
-        search: searchText || undefined,
+        search: debouncedSearch || undefined,
         provincia_id: filterProvincia || undefined,
         municipio_id: filterMunicipio || undefined,
         categoria_id: filterCategoria || undefined,
@@ -235,6 +247,7 @@ const AdminOposiciones: React.FC = () => {
 
   const clearFilters = () => {
     setSearchText('');
+    setDebouncedSearch('');
     setFilterProvincia(null);
     setFilterMunicipio(null);
     setFilterCategoria(null);
