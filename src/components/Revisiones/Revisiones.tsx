@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Collapse, Button, Modal, Input, Tag, Space, Popconfirm } from 'antd';
+import { Collapse, Button, Modal, Input, Tag, Space, Popconfirm, Select } from 'antd';
 import { notify } from '@/utils/notify';
 import { SkeletonList } from '../shared/Skeletons';
 import {
@@ -22,6 +22,7 @@ const { TextArea } = Input;
 const Revisiones: React.FC = () => {
   const { user, isAdmin } = useAuth();
   const [revisiones, setRevisiones] = useState<any[]>([]);
+  const [filtroProfesor, setFiltroProfesor] = useState<number | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -245,6 +246,22 @@ const Revisiones: React.FC = () => {
     }
   };
 
+  // Opciones del filtro: profesores que tienen revisiones asignadas (derivado de los datos ya cargados)
+  const profesoresOptions = useMemo(() => {
+    const map = new Map<number, string>();
+    revisiones.forEach(r => {
+      if (r.profesorAsignadoId != null) {
+        map.set(r.profesorAsignadoId, r.profesorAsignadoNombre || `Profesor ${r.profesorAsignadoId}`);
+      }
+    });
+    return Array.from(map, ([value, label]) => ({ value, label }));
+  }, [revisiones]);
+
+  // Filtro por profesor asignado: solo aplica para administrador
+  const revisionesFiltradas = (isAdmin && filtroProfesor != null)
+    ? revisiones.filter(r => r.profesorAsignadoId === filtroProfesor)
+    : revisiones;
+
   if (loading) {
     return <SkeletonList count={5} />;
   }
@@ -275,16 +292,29 @@ const Revisiones: React.FC = () => {
         </motion.p>
       </div>
 
+      {isAdmin && profesoresOptions.length > 0 && (
+        <div className="revisiones-filtros" style={{ marginBottom: 16 }}>
+          <Select
+            allowClear
+            placeholder="Filtrar por profesor asignado"
+            className="filtro-profesor"
+            style={{ minWidth: 260 }}
+            value={filtroProfesor ?? undefined}
+            onChange={(value) => setFiltroProfesor(value ?? null)}
+            options={profesoresOptions}
+          />
+        </div>
+      )}
+
       <AnimatePresence>
         <Collapse
           className="revisiones-collapse"
           accordion
           expandIconPosition="end"
         >
-          {Array.isArray(revisiones) &&
-            revisiones.length > 0 &&
-            revisiones.some(c => Array.isArray(c.temas) && c.temas.length > 0) &&
-            revisiones.map((revision, index) => (
+          {Array.isArray(revisionesFiltradas) &&
+            revisionesFiltradas.length > 0 &&
+            revisionesFiltradas.map((revision, index) => (
             <Panel
               key={revision.id}
               header={
@@ -300,6 +330,11 @@ const Revisiones: React.FC = () => {
                       <Space size="middle">
                         <span><UserOutlined /> {revision.candidato}</span>
                         {getEstadoTag(revision.estado)}
+                        {isAdmin && revision.profesorAsignadoNombre && (
+                          <Tag icon={<UserOutlined />} color="geekblue">
+                            {revision.profesorAsignadoNombre}
+                          </Tag>
+                        )}
                       </Space>
                     </div>
                   </div>
@@ -423,6 +458,14 @@ const Revisiones: React.FC = () => {
           ))}
         </Collapse>
       </AnimatePresence>
+
+      {(!Array.isArray(revisionesFiltradas) || revisionesFiltradas.length === 0) && (
+        <div className="revisiones-empty" style={{ textAlign: 'center', padding: '48px 0', color: '#888' }}>
+          {isAdmin && filtroProfesor != null
+            ? 'Este profesor no tiene revisiones pendientes.'
+            : 'No hay revisiones pendientes.'}
+        </div>
+      )}
 
       {/* Modal corrección */}
       <Modal

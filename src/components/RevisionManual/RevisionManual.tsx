@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   Button, Modal, Upload, Form, Input, Radio,
-  Table, Tag, Space, Spin, Typography, DatePicker
+  Table, Tag, Space, Spin, Typography, DatePicker, Select
 } from 'antd';
 import {
   UploadOutlined, FileAddOutlined, FolderOpenOutlined,
   LinkOutlined, FileTextOutlined, DeleteOutlined,
   SwapOutlined, WarningOutlined, CalendarOutlined,
-  SearchOutlined, FilterOutlined
+  SearchOutlined, FilterOutlined, UserOutlined
 } from '@ant-design/icons';
 import type { UploadFile } from 'antd/es/upload/interface';
 import type { Dayjs } from 'dayjs';
@@ -25,6 +25,8 @@ interface RevisionManualItem {
   oposicion_id: number;
   oposicion_nombre: string;
   fecha_primera_solicitud: string;
+  profesor_asignado_id?: number | null;
+  profesor_asignado_nombre?: string | null;
 }
 
 const formatFecha = (fecha: string) => {
@@ -38,6 +40,7 @@ const RevisionManual: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
+  const [filtroProfesor, setFiltroProfesor] = useState<number | 'none' | null>(null);
 
   // Subir temario modal
   const [subirTemarioModal, setSubirTemarioModal] = useState(false);
@@ -211,6 +214,17 @@ const RevisionManual: React.FC = () => {
     }
   };
 
+  // Opciones del filtro: profesores que aparecen asignados en los temarios cargados
+  const profesoresOptions = useMemo(() => {
+    const map = new Map<number, string>();
+    items.forEach(i => {
+      if (i.profesor_asignado_id != null) {
+        map.set(i.profesor_asignado_id, i.profesor_asignado_nombre || `Profesor ${i.profesor_asignado_id}`);
+      }
+    });
+    return Array.from(map, ([value, label]) => ({ value, label }));
+  }, [items]);
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: 60 }}>
@@ -263,10 +277,20 @@ const RevisionManual: React.FC = () => {
           className="rm-date-picker"
           suffixIcon={<FilterOutlined />}
         />
-        {(searchText || dateRange) && (
+        <Select
+          allowClear
+          placeholder="Profesor asignado"
+          value={filtroProfesor ?? undefined}
+          onChange={(value) => setFiltroProfesor((value as number | 'none') ?? null)}
+          options={[{ value: 'none', label: 'Sin asignar' }, ...profesoresOptions]}
+          style={{ minWidth: 220 }}
+          className="rm-profesor-select"
+          suffixIcon={<UserOutlined />}
+        />
+        {(searchText || dateRange || filtroProfesor != null) && (
           <Button
             size="small"
-            onClick={() => { setSearchText(''); setDateRange(null); }}
+            onClick={() => { setSearchText(''); setDateRange(null); setFiltroProfesor(null); }}
             className="rm-clear-btn"
           >
             Limpiar filtros
@@ -278,6 +302,13 @@ const RevisionManual: React.FC = () => {
         const filtered = items.filter(i => {
           const matchesText = i.oposicion_nombre.toLowerCase().includes(searchText.toLowerCase());
           if (!matchesText) return false;
+          if (filtroProfesor != null) {
+            if (filtroProfesor === 'none') {
+              if (i.profesor_asignado_id != null) return false;
+            } else if (i.profesor_asignado_id !== filtroProfesor) {
+              return false;
+            }
+          }
           if (dateRange && dateRange[0] && dateRange[1]) {
             const fechaTs = new Date(i.fecha_primera_solicitud).setHours(0, 0, 0, 0);
             const fromTs = dateRange[0].startOf('day').valueOf();
@@ -286,7 +317,7 @@ const RevisionManual: React.FC = () => {
           }
           return true;
         });
-        const hasFilters = searchText || dateRange;
+        const hasFilters = searchText || dateRange || filtroProfesor != null;
         return filtered.length === 0 ? (
           <div className="rm-empty">
             {hasFilters ? 'Sin resultados para los filtros aplicados.' : 'No hay revisiones manuales pendientes.'}
@@ -310,6 +341,12 @@ const RevisionManual: React.FC = () => {
                         <CalendarOutlined /> {formatFecha(item.fecha_primera_solicitud)}
                       </span>
                     )}
+                    <span className="rm-card-profesor">
+                      <UserOutlined />{' '}
+                      {item.profesor_asignado_nombre
+                        ? item.profesor_asignado_nombre
+                        : <Tag color="default" style={{ margin: 0 }}>Sin asignar</Tag>}
+                    </span>
                   </div>
                 </div>
               <div className="rm-card-actions">

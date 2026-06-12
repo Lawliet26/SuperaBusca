@@ -51,7 +51,12 @@ export const revisionesService = {
     try {
       const response = await api.get<any[]>('/lista-revisiones');
 
-      return response.data.map(temario => {
+      // El endpoint puede devolver un array vacío, un item vacío [{}] (alwaysOutputData)
+      // o, ante un fallo, algo que no sea array. Blindamos antes de mapear.
+      const lista = Array.isArray(response.data) ? response.data : [];
+      return lista
+        .filter((temario: any) => temario && temario.temario_id != null)
+        .map(temario => {
         return {
           id: String(temario.temario_id),
           titulo: temario.oposicion_nombre,
@@ -59,6 +64,8 @@ export const revisionesService = {
           candidato: 'Sistema de detección',
           fechaEnvio: new Date().toISOString(),
           estado: 'pendiente' as const,
+          profesorAsignadoId: temario.profesor_asignado_id ?? null,
+          profesorAsignadoNombre: temario.profesor_asignado_nombre ?? null,
           temas: temario.temas_convocatoria
         };
       });

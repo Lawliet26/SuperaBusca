@@ -51,9 +51,24 @@ const clearSession = () => {
   deleteCookie(AUTH_COOKIE_NAME);
 };
 
-// Interceptor de response: maneja 401 intentando renovar el token
+// n8n devuelve [{}] (un array con un único objeto vacío) cuando un endpoint no tiene
+// resultados, por el respondWith=allIncomingItems + alwaysOutputData. Eso provoca que
+// los componentes reciban items "fantasma" y se caigan al mapearlos o leer propiedades.
+// Lo normalizamos globalmente: toda respuesta tipo array se limpia de objetos vacíos.
+const isEmptyObject = (val: unknown): boolean =>
+  val != null &&
+  typeof val === 'object' &&
+  !Array.isArray(val) &&
+  Object.keys(val as Record<string, unknown>).length === 0;
+
+// Interceptor de response: normaliza arrays vacíos de n8n y maneja 401 renovando el token
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (Array.isArray(response.data)) {
+      response.data = response.data.filter((item) => !isEmptyObject(item));
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
