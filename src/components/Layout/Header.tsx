@@ -22,9 +22,19 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
   const { user, logout, isProfesor, isAdmin } = useAuth();
   const [scrolled, setScrolled] = useState(false);
+  const [compact, setCompact] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 40);
+      // Dirección del scroll: bajando -> compacto; subiendo o cerca del top -> tamaño normal
+      if (y < 60) setCompact(false);
+      else if (y > lastY + 4) setCompact(true);
+      else if (y < lastY - 4) setCompact(false);
+      lastY = y;
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -65,7 +75,7 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
   return (
     <header className="header">
       <motion.div
-        className={`main-pill${scrolled ? ' scrolled' : ''}`}
+        className={`main-pill${scrolled ? ' scrolled' : ''}${compact ? ' compact' : ''}`}
         initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}

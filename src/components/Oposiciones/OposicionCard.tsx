@@ -47,6 +47,8 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
   const tipo = tipoConfig[oposicion.tipo] ?? tipoConfig.Oferta;
   const isOferta = oposicion.tipo === 'Oferta';
   const hasTemario = oposicion.tieneTemarioListo;
+  // Convocatoria: fondo navy un poco más claro; Oferta: más oscuro
+  const cardBg = isOferta ? '#0b192e' : '#17314f';
 
   const handleCardClick = () => setIsModalOpen(true);
 
@@ -86,9 +88,7 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
         onHoverEnd={() => setHovered(false)}
         onClick={handleCardClick}
         style={{
-          background: hovered
-            ? 'linear-gradient(135deg, #0b192e 0%, #0b192e 100%)'
-            : '#0b192e',
+          background: cardBg,
           border: hovered ? '1px solid rgba(35,194,123,0.55)' : '1px solid rgba(35,194,123,0.22)',
           borderRadius: 16,
           padding: '20px 22px',
@@ -100,7 +100,7 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
           transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
           position: 'relative',
           overflow: 'hidden',
-          opacity: isOferta ? 0.55 : 1,
+          opacity: isOferta ? 0.85 : 1,
           display: 'flex',
           flexDirection: 'column',
           height: '100%',

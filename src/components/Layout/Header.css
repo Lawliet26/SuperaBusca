@@ -22,7 +22,8 @@
   backdrop-filter: blur(12px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   width: fit-content;
-  transition: background 0.3s ease;
+  transform-origin: top center;
+  transition: background 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
 }
 
 .pill-logo {
@@ -205,5 +206,11 @@
   .pill-nav-item {
     padding: 8px 10px !important;
     gap: 0 !important;
+  }
+
+  /* Al bajar el scroll, el nav se achica para no estorbar; al subir vuelve */
+  .main-pill.compact {
+    transform: scale(0.8);
+    opacity: 0.95;
   }
 }

@@ -15,6 +15,7 @@ import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { notify } from '@/utils/notify';
 import { recursosService } from '../../services/recursosService';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../config/api';
 import './RevisionManual.css';
 
@@ -36,6 +37,7 @@ const formatFecha = (fecha: string) => {
 };
 
 const RevisionManual: React.FC = () => {
+  const { user, isProfesor, isAdmin } = useAuth();
   const [items, setItems] = useState<RevisionManualItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
@@ -99,7 +101,11 @@ const RevisionManual: React.FC = () => {
     }
     setSubirLoading(true);
     try {
-      await recursosService.uploadRelacionTemario(selectedItem.oposicion_id, file);
+      await recursosService.uploadRelacionTemario(
+        selectedItem.oposicion_id,
+        file,
+        isProfesor ? user?.profesor_id : undefined
+      );
       notify.success('Temario subido correctamente');
       setSubirTemarioModal(false);
       setSubirFile([]);
@@ -183,7 +189,11 @@ const RevisionManual: React.FC = () => {
           setUploadingRecurso(false);
           return;
         }
-        await recursosService.uploadRelacionTemario(selectedItem.oposicion_id, file);
+        await recursosService.uploadRelacionTemario(
+          selectedItem.oposicion_id,
+          file,
+          isProfesor ? user?.profesor_id : undefined
+        );
         notify.success('Relación de temario cargada correctamente');
       } else {
         const formData = new FormData();
@@ -277,16 +287,18 @@ const RevisionManual: React.FC = () => {
           className="rm-date-picker"
           suffixIcon={<FilterOutlined />}
         />
-        <Select
-          allowClear
-          placeholder="Profesor asignado"
-          value={filtroProfesor ?? undefined}
-          onChange={(value) => setFiltroProfesor((value as number | 'none') ?? null)}
-          options={[{ value: 'none', label: 'Sin asignar' }, ...profesoresOptions]}
-          style={{ minWidth: 220 }}
-          className="rm-profesor-select"
-          suffixIcon={<UserOutlined />}
-        />
+        {isAdmin && (
+          <Select
+            allowClear
+            placeholder="Profesor asignado"
+            value={filtroProfesor ?? undefined}
+            onChange={(value) => setFiltroProfesor((value as number | 'none') ?? null)}
+            options={[{ value: 'none', label: 'Sin asignar' }, ...profesoresOptions]}
+            style={{ minWidth: 220 }}
+            className="rm-profesor-select"
+            suffixIcon={<UserOutlined />}
+          />
+        )}
         {(searchText || dateRange || filtroProfesor != null) && (
           <Button
             size="small"
@@ -341,12 +353,14 @@ const RevisionManual: React.FC = () => {
                         <CalendarOutlined /> {formatFecha(item.fecha_primera_solicitud)}
                       </span>
                     )}
-                    <span className="rm-card-profesor">
-                      <UserOutlined />{' '}
-                      {item.profesor_asignado_nombre
-                        ? item.profesor_asignado_nombre
-                        : <Tag color="default" style={{ margin: 0 }}>Sin asignar</Tag>}
-                    </span>
+                    {isAdmin && (
+                      <span className="rm-card-profesor">
+                        <UserOutlined />{' '}
+                        {item.profesor_asignado_nombre
+                          ? item.profesor_asignado_nombre
+                          : <Tag color="default" style={{ margin: 0 }}>Sin asignar</Tag>}
+                      </span>
+                    )}
                   </div>
                 </div>
               <div className="rm-card-actions">

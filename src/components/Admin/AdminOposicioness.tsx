@@ -56,6 +56,7 @@ import { OposicionAdmin } from '../../types';
 import './AdminOposiciones.css';
 import { useAuth } from '@/context/AuthContext';
 import AdminUsuarios from './AdminUsuarios';
+import AdminHistorico from './AdminHistorico';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -67,7 +68,27 @@ const ESTADOS_OPOSICION = ['Abierta', 'Cerrada', 'En curso'];
 
 const AdminOposiciones: React.FC = () => {
   const { user, isProfesor } = useAuth();
-  const [activeTab, setActiveTab] = useState('oposiciones');
+  const ADMIN_TAB_KEY = 'oporadar_admin_tab';
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const saved = localStorage.getItem(ADMIN_TAB_KEY);
+    return saved === 'usuarios' || saved === 'historico' || saved === 'oposiciones'
+      ? saved
+      : 'oposiciones';
+  });
+
+  // Recuerda la tab activa entre recargas
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+    localStorage.setItem(ADMIN_TAB_KEY, key);
+  };
+
+  // Si un profesor tuviera guardada una tab solo-admin, lo devolvemos a Oposiciones
+  useEffect(() => {
+    if (isProfesor && activeTab !== 'oposiciones') {
+      setActiveTab('oposiciones');
+      localStorage.setItem(ADMIN_TAB_KEY, 'oposiciones');
+    }
+  }, [isProfesor, activeTab]);
   const [oposiciones, setOposiciones] = useState<OposicionAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [provincias, setProvincias] = useState<Provincia[]>([]);
@@ -92,7 +113,7 @@ const AdminOposiciones: React.FC = () => {
   const handleGestionarOposicion = (nombre: string) => {
     setSearchText(nombre);
     setCurrentPage(1);
-    setActiveTab('oposiciones');
+    handleTabChange('oposiciones');
   };
   const [filterProvincia, setFilterProvincia] = useState<number | null>(null);
   const [filterMunicipio, setFilterMunicipio] = useState<number | null>(null);
@@ -976,7 +997,7 @@ const AdminOposiciones: React.FC = () => {
     >
       <Tabs
         activeKey={activeTab}
-        onChange={setActiveTab}
+        onChange={handleTabChange}
         className="admin-tabs"
         items={[
           {
@@ -1679,11 +1700,20 @@ const AdminOposiciones: React.FC = () => {
               </>
             ),
           },
-          {
-            key: 'usuarios',
-            label: 'Gestión de Usuarios',
-            children: <AdminUsuarios onGestionarOposicion={handleGestionarOposicion} />,
-          },
+          ...(!isProfesor
+            ? [
+                {
+                  key: 'usuarios',
+                  label: 'Gestión de Usuarios',
+                  children: <AdminUsuarios onGestionarOposicion={handleGestionarOposicion} />,
+                },
+                {
+                  key: 'historico',
+                  label: 'Histórico de Revisiones',
+                  children: <AdminHistorico />,
+                },
+              ]
+            : []),
         ]}
       />
     </motion.div>

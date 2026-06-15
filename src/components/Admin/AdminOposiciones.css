@@ -112,6 +112,67 @@
   padding: 0;
 }
 
+/* ===== Histórico de Revisiones: tono un poco más alto para no fundirse ===== */
+.admin-historico .filters-card,
+.admin-historico .table-card {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(35, 194, 123, 0.22);
+}
+
+.admin-historico .ant-table {
+  background: transparent;
+}
+
+.admin-historico .ant-table-tbody > tr > td {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.admin-historico .ant-table-tbody > tr:hover > td {
+  background: rgba(35, 194, 123, 0.07) !important;
+}
+
+/* Tabla anidada (revisiones por profesor) un toque más clara */
+.admin-historico .ant-table-expanded-row > td,
+.admin-historico .ant-table-expanded-row .ant-table {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Inputs y date picker: fondo y borde visibles */
+.admin-historico .search-input .ant-input-affix-wrapper,
+.admin-historico .ant-picker {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(35, 194, 123, 0.28) !important;
+  border-radius: 8px;
+}
+
+.admin-historico .search-input .ant-input-affix-wrapper:hover,
+.admin-historico .ant-picker:hover {
+  border-color: rgba(35, 194, 123, 0.5) !important;
+}
+
+.admin-historico .search-input .ant-input,
+.admin-historico .search-input .ant-input-affix-wrapper .ant-input {
+  background: transparent !important;
+}
+
+/* Filtros en grid responsive: se reacomodan solos según el ancho, sin apretarse */
+.admin-historico .filters-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  align-items: center;
+}
+.admin-historico .search-input,
+.admin-historico .date-range-picker {
+  width: 100%;
+}
+
+/* Misma altura para buscadores y rango de fechas (que queden simétricos) */
+.admin-historico .search-input .ant-input-affix-wrapper,
+.admin-historico .date-range-picker.ant-picker {
+  height: 42px;
+}
+
 /* Table Styles */
 .admin-table .ant-table {
   background: transparent;
