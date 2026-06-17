@@ -57,6 +57,7 @@ import './AdminOposiciones.css';
 import { useAuth } from '@/context/AuthContext';
 import AdminUsuarios from './AdminUsuarios';
 import AdminHistorico from './AdminHistorico';
+import AdminActividades from './AdminActividades';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -71,7 +72,7 @@ const AdminOposiciones: React.FC = () => {
   const ADMIN_TAB_KEY = 'oporadar_admin_tab';
   const [activeTab, setActiveTab] = useState<string>(() => {
     const saved = localStorage.getItem(ADMIN_TAB_KEY);
-    return saved === 'usuarios' || saved === 'historico' || saved === 'oposiciones'
+    return saved === 'usuarios' || saved === 'historico' || saved === 'actividades' || saved === 'oposiciones'
       ? saved
       : 'oposiciones';
   });
@@ -1711,6 +1712,11 @@ const AdminOposiciones: React.FC = () => {
                   key: 'historico',
                   label: 'Histórico de Revisiones',
                   children: <AdminHistorico />,
+                },
+                {
+                  key: 'actividades',
+                  label: 'Actividades',
+                  children: <AdminActividades />,
                 },
               ]
             : []),

@@ -173,6 +173,21 @@
   height: 42px;
 }
 
+/* Tabs del panel admin en el verde de marca */
+.admin-tabs .ant-tabs-tab:hover .ant-tabs-tab-btn {
+  color: #23C27B;
+}
+.admin-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #23C27B !important;
+}
+.admin-tabs .ant-tabs-ink-bar {
+  background: #23C27B !important;
+}
+.admin-tabs .ant-tabs-tab-btn:active,
+.admin-tabs .ant-tabs-tab-btn:focus {
+  color: #23C27B;
+}
+
 /* Table Styles */
 .admin-table .ant-table {
   background: transparent;

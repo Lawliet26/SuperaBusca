@@ -59,8 +59,9 @@
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
-  background: #0000002f;
+  border: 1px solid #e5e7eb;
+  border-left: 4px solid #23C27B;
+  background: #f8fafc;
 }
 
 .recurso-card:hover {
@@ -68,50 +69,20 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-.recurso-card-documento {
-  border-color: #ff6b6b;
-}
+.recurso-card-documento { border-left-color: #23C27B; }
+.recurso-card-documento:hover { border-left-color: #1ea968; box-shadow: 0 8px 24px rgba(35, 194, 123, 0.18); }
 
-.recurso-card-documento:hover {
-  border-color: #ff5252;
-  box-shadow: 0 8px 24px rgba(255, 107, 107, 0.2);
-}
+.recurso-card-imagen { border-left-color: #4ecdc4; }
+.recurso-card-imagen:hover { border-left-color: #3dbdb3; box-shadow: 0 8px 24px rgba(78, 205, 196, 0.18); }
 
-.recurso-card-imagen {
-  border-color: #4ecdc4;
-}
+.recurso-card-video { border-left-color: #9b59b6; }
+.recurso-card-video:hover { border-left-color: #8e44ad; box-shadow: 0 8px 24px rgba(155, 89, 182, 0.18); }
 
-.recurso-card-imagen:hover {
-  border-color: #3dbdb3;
-  box-shadow: 0 8px 24px rgba(78, 205, 196, 0.2);
-}
+.recurso-card-audio { border-left-color: #f39c12; }
+.recurso-card-audio:hover { border-left-color: #e67e22; box-shadow: 0 8px 24px rgba(243, 156, 18, 0.18); }
 
-.recurso-card-video {
-  border-color: #9b59b6;
-}
-
-.recurso-card-video:hover {
-  border-color: #8e44ad;
-  box-shadow: 0 8px 24px rgba(155, 89, 182, 0.2);
-}
-
-.recurso-card-audio {
-  border-color: #f39c12;
-}
-
-.recurso-card-audio:hover {
-  border-color: #e67e22;
-  box-shadow: 0 8px 24px rgba(243, 156, 18, 0.2);
-}
-
-.recurso-card-link {
-  border-color: #3498db;
-}
-
-.recurso-card-link:hover {
-  border-color: #2980b9;
-  box-shadow: 0 8px 24px rgba(52, 152, 219, 0.2);
-}
+.recurso-card-link { border-left-color: #3498db; }
+.recurso-card-link:hover { border-left-color: #2980b9; box-shadow: 0 8px 24px rgba(52, 152, 219, 0.18); }
 
 .recurso-icon-container {
   flex-shrink: 0;
@@ -138,7 +109,7 @@
 .recurso-titulo {
   font-size: 15px;
   font-weight: 600;
-  color: #ffffff;
+  color: #1a2332;
   margin: 0 0 6px 0;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { OposicionAccordion } from './OposicionAccordion';
+import { CalendarioConvocatorias } from './CalendarioConvocatorias';
 import { notify } from '@/utils/notify';
 import { temariosService } from '@/services/temariosService';
 import { OposicionData } from '@/types';
@@ -65,7 +65,13 @@ export const Temarios = () => {
             <p className="temarios-empty-text">No hay convocatorias disponibles</p>
           </div>
         ) : (
-          <OposicionAccordion oposiciones={oposiciones} />
+          <div className="temarios-calendario">
+            <CalendarioConvocatorias
+              convocatorias={(oposiciones as any[])
+                .filter((o) => o.id_oposicion != null)
+                .map((o) => ({ id_oposicion: o.id_oposicion, titulo_oposicion: o.titulo_oposicion }))}
+            />
+          </div>
         )}
       </div>
     </motion.div>

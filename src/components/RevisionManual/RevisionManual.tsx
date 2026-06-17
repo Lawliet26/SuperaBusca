@@ -28,6 +28,7 @@ interface RevisionManualItem {
   fecha_primera_solicitud: string;
   profesor_asignado_id?: number | null;
   profesor_asignado_nombre?: string | null;
+  linea?: string | null;
 }
 
 const formatFecha = (fecha: string) => {
@@ -43,6 +44,7 @@ const RevisionManual: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
   const [filtroProfesor, setFiltroProfesor] = useState<number | 'none' | null>(null);
+  const [filtroLinea, setFiltroLinea] = useState<string | null>(null);
 
   // Subir temario modal
   const [subirTemarioModal, setSubirTemarioModal] = useState(false);
@@ -299,10 +301,23 @@ const RevisionManual: React.FC = () => {
             suffixIcon={<UserOutlined />}
           />
         )}
-        {(searchText || dateRange || filtroProfesor != null) && (
+        <Select
+          allowClear
+          placeholder="Línea"
+          value={filtroLinea ?? undefined}
+          onChange={(value) => setFiltroLinea((value as string) ?? null)}
+          options={[
+            { value: 'Supera', label: 'Supera' },
+            { value: 'Patrio', label: 'Patrio' },
+            { value: 'Otro', label: 'Otro' },
+          ]}
+          style={{ minWidth: 160 }}
+          className="rm-linea-select"
+        />
+        {(searchText || dateRange || filtroProfesor != null || filtroLinea) && (
           <Button
             size="small"
-            onClick={() => { setSearchText(''); setDateRange(null); setFiltroProfesor(null); }}
+            onClick={() => { setSearchText(''); setDateRange(null); setFiltroProfesor(null); setFiltroLinea(null); }}
             className="rm-clear-btn"
           >
             Limpiar filtros
@@ -321,6 +336,7 @@ const RevisionManual: React.FC = () => {
               return false;
             }
           }
+          if (filtroLinea && i.linea !== filtroLinea) return false;
           if (dateRange && dateRange[0] && dateRange[1]) {
             const fechaTs = new Date(i.fecha_primera_solicitud).setHours(0, 0, 0, 0);
             const fromTs = dateRange[0].startOf('day').valueOf();
@@ -329,7 +345,7 @@ const RevisionManual: React.FC = () => {
           }
           return true;
         });
-        const hasFilters = searchText || dateRange || filtroProfesor != null;
+        const hasFilters = searchText || dateRange || filtroProfesor != null || filtroLinea;
         return filtered.length === 0 ? (
           <div className="rm-empty">
             {hasFilters ? 'Sin resultados para los filtros aplicados.' : 'No hay revisiones manuales pendientes.'}

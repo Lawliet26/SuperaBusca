@@ -1,14 +1,25 @@
-import { Modal, Tag, Divider } from 'antd';
+import { useEffect, useState } from 'react';
+import { Modal, Tag, Divider, Spin } from 'antd';
 import {
   CalendarOutlined,
   EnvironmentOutlined,
   TeamOutlined,
   BookOutlined,
-  LinkOutlined
+  LinkOutlined,
+  ClockCircleOutlined
 } from '@ant-design/icons';
 import { X } from 'lucide-react';
+import dayjs from 'dayjs';
 import { Oposicion } from '@/types';
+import { actividadesService, Actividad } from '@/services/actividadesService';
 import './OposicionDetailModal.css';
+
+const TIPO_ACT: Record<string, { label: string; color: string }> = {
+  reunion: { label: 'Reunión', color: 'blue' },
+  actividad: { label: 'Actividad', color: 'green' },
+  fecha_especial: { label: 'Fecha especial', color: 'gold' },
+  otro: { label: 'Otro', color: 'default' },
+};
 
 interface OposicionDetailModalProps {
   isOpen: boolean;
@@ -21,6 +32,20 @@ export const OposicionDetailModal = ({
   onClose,
   oposicion
 }: OposicionDetailModalProps) => {
+  const [actividades, setActividades] = useState<Actividad[]>([]);
+  const [loadingAct, setLoadingAct] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !oposicion) return;
+    let cancel = false;
+    setLoadingAct(true);
+    actividadesService.list({ oposicion_id: Number(oposicion.id) })
+      .then((data) => { if (!cancel) setActividades(data); })
+      .catch(() => { if (!cancel) setActividades([]); })
+      .finally(() => { if (!cancel) setLoadingAct(false); });
+    return () => { cancel = true; };
+  }, [isOpen, oposicion?.id]);
+
   const getEstadoColor = (estado: string) => {
     switch (estado) {
       case 'abierta':
@@ -153,6 +178,62 @@ export const OposicionDetailModal = ({
             )}
           </div>
         </div>
+
+        {(loadingAct || actividades.length > 0) && (
+          <>
+            <Divider />
+            <div className="detail-info-section">
+              <h3 className="section-title">
+                <CalendarOutlined style={{ marginRight: 8 }} />
+                Actividades
+              </h3>
+              {loadingAct ? (
+                <div style={{ textAlign: 'center', padding: 16 }}><Spin /></div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+                  {actividades.map((a) => {
+                    const info = TIPO_ACT[a.tipo || ''] || { label: a.tipo, color: 'default' };
+                    return (
+                      <div
+                        key={a.id}
+                        style={{
+                          border: '1px solid #e5e7eb',
+                          borderLeft: `4px solid ${a.color || '#23C27B'}`,
+                          borderRadius: 10,
+                          padding: '12px 14px',
+                          background: '#fff',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                          {a.tipo && <Tag color={info.color}>{info.label}</Tag>}
+                          <span style={{ fontWeight: 700, color: '#1a2332' }}>{a.titulo || 'Actividad'}</span>
+                        </div>
+                        {a.descripcion && (
+                          <p style={{ color: '#4a5568', fontSize: 13, margin: '0 0 8px' }}>{a.descripcion}</p>
+                        )}
+                        {a.fecha_inicio && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#475569', fontSize: 12 }}>
+                            <ClockCircleOutlined />
+                            <span>
+                              {dayjs(a.fecha_inicio).format(a.todo_el_dia ? 'DD/MM/YYYY' : 'DD/MM/YYYY HH:mm')}
+                              {a.fecha_fin ? ` — ${dayjs(a.fecha_fin).format(a.todo_el_dia ? 'DD/MM/YYYY' : 'DD/MM/YYYY HH:mm')}` : ''}
+                            </span>
+                          </div>
+                        )}
+                        {a.ubicacion && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#475569', fontSize: 12, marginTop: 4 }}>
+                            <EnvironmentOutlined />
+                            <span>{a.ubicacion}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
       </div>
     </Modal>
