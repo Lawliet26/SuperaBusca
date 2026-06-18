@@ -8,11 +8,28 @@ import {
   LinkOutlined,
   ClockCircleOutlined
 } from '@ant-design/icons';
-import { X } from 'lucide-react';
+import { X, FileText, Image as ImageIcon, Video, Headphones, ExternalLink } from 'lucide-react';
 import dayjs from 'dayjs';
-import { Oposicion } from '@/types';
+import { Oposicion, RecursoGet } from '@/types';
 import { actividadesService, Actividad } from '@/services/actividadesService';
+import { recursosService } from '@/services/recursosService';
 import './OposicionDetailModal.css';
+
+const ICONO_RECURSO: Record<string, JSX.Element> = {
+  documento: <FileText size={18} />,
+  image: <ImageIcon size={18} />,
+  video: <Video size={18} />,
+  audio: <Headphones size={18} />,
+  link: <ExternalLink size={18} />,
+};
+
+const LABEL_RECURSO: Record<string, string> = {
+  documento: 'Documento',
+  image: 'Imagen',
+  video: 'Video',
+  audio: 'Audio',
+  link: 'Enlace',
+};
 
 const TIPO_ACT: Record<string, { label: string; color: string }> = {
   reunion: { label: 'Reunión', color: 'blue' },
@@ -25,15 +42,20 @@ interface OposicionDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   oposicion: Oposicion | null;
+  /** Si es true, muestra debajo la sección de recursos de la oposición */
+  mostrarRecursos?: boolean;
 }
 
 export const OposicionDetailModal = ({
   isOpen,
   onClose,
-  oposicion
+  oposicion,
+  mostrarRecursos = false
 }: OposicionDetailModalProps) => {
   const [actividades, setActividades] = useState<Actividad[]>([]);
   const [loadingAct, setLoadingAct] = useState(false);
+  const [recursos, setRecursos] = useState<RecursoGet[]>([]);
+  const [loadingRec, setLoadingRec] = useState(false);
 
   useEffect(() => {
     if (!isOpen || !oposicion) return;
@@ -45,6 +67,17 @@ export const OposicionDetailModal = ({
       .finally(() => { if (!cancel) setLoadingAct(false); });
     return () => { cancel = true; };
   }, [isOpen, oposicion?.id]);
+
+  useEffect(() => {
+    if (!isOpen || !oposicion || !mostrarRecursos) return;
+    let cancel = false;
+    setLoadingRec(true);
+    recursosService.getRecursosByOposicion(Number(oposicion.id))
+      .then((data) => { if (!cancel) setRecursos(data); })
+      .catch(() => { if (!cancel) setRecursos([]); })
+      .finally(() => { if (!cancel) setLoadingRec(false); });
+    return () => { cancel = true; };
+  }, [isOpen, oposicion?.id, mostrarRecursos]);
 
   const getEstadoColor = (estado: string) => {
     switch (estado) {
@@ -229,6 +262,56 @@ export const OposicionDetailModal = ({
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {mostrarRecursos && (loadingRec || recursos.length > 0) && (
+          <>
+            <Divider />
+            <div className="detail-info-section">
+              <h3 className="section-title">
+                <BookOutlined style={{ marginRight: 8 }} />
+                Recursos
+              </h3>
+              {loadingRec ? (
+                <div style={{ textAlign: 'center', padding: 16 }}><Spin /></div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+                  {recursos.map((r, i) => (
+                    <a
+                      key={r.id ?? i}
+                      href={r.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        border: '1px solid #e5e7eb',
+                        borderLeft: '4px solid #23C27B',
+                        borderRadius: 10,
+                        padding: '12px 14px',
+                        background: '#fff',
+                        textDecoration: 'none',
+                        color: '#1a2332',
+                      }}
+                    >
+                      <span style={{ color: '#23C27B', display: 'flex' }}>
+                        {ICONO_RECURSO[r.tipo] || <FileText size={18} />}
+                      </span>
+                      <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                        <span style={{ fontWeight: 600, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {r.titulo}
+                        </span>
+                        <span style={{ color: '#64748b', fontSize: 12 }}>
+                          {LABEL_RECURSO[r.tipo] || 'Recurso'}
+                        </span>
+                      </span>
+                    </a>
+                  ))}
                 </div>
               )}
             </div>

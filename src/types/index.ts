@@ -56,6 +56,17 @@ export interface OposicionData {
   estado_solicitud: string;
   manual: boolean;
   temario: TemaTemario[];
+  // Datos de la oposición (enriquecidos desde n8n para el detalle)
+  estado?: string;
+  provincia?: string;
+  nombre_municipio?: string;
+  categoria?: string;
+  num_plazas?: number;
+  fecha_convocatoria?: string;
+  fecha_fin?: string;
+  url_bases_oficiales?: string;
+  url_convocatoria?: string;
+  observaciones?: string;
 }
 
 export interface OposicionAdmin {

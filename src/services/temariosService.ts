@@ -47,6 +47,7 @@ interface RevisionAPIResponse {
 export const temariosService = {
   async getMisTemarios(user: any): Promise<any[]> {
     const response = await api.get<any>(`/mis-temarios?usuario_id=${user.id}`);
-    return response?.data[0]?.dashboard_data;
-  } 
+    const dashboard = response?.data?.[0]?.dashboard_data;
+    return Array.isArray(dashboard) ? dashboard : [];
+  }
 };

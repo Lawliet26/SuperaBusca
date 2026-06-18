@@ -314,6 +314,82 @@
 
 
 /* ========================================
+   Grid de Convocatorias (tarjetas)
+   ======================================== */
+.convocatorias-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+.convocatoria-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.875rem;
+  padding: 1.25rem 1.25rem 1.1rem;
+  backdrop-filter: blur(20px);
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.convocatoria-card:hover {
+  border-color: rgba(35, 194, 123, 0.45);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.convocatoria-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.convocatoria-card-tag {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #23C27B;
+  background: rgba(35, 194, 123, 0.12);
+  border: 1px solid rgba(35, 194, 123, 0.25);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+}
+
+.convocatoria-card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.convocatoria-card-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: #23C27B;
+  color: #06281c;
+  border: none;
+  border-radius: 0.6rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.convocatoria-card-btn:hover {
+  filter: brightness(1.08);
+}
+
+/* ========================================
    RESPONSIVE - Tablet
    ======================================== */
 @media (max-width: 1024px) {
@@ -336,6 +412,11 @@
 @media (max-width: 768px) {
   .temarios-header {
     margin-bottom: 1.5rem;
+  }
+
+  .convocatorias-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .temarios-title {
