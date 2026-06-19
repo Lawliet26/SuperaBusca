@@ -25,7 +25,7 @@ export const EventoHoyAlert = ({ onIrAConvocatorias }: Props) => {
     let cancel = false;
     (async () => {
       try {
-        const convs = await temariosService.getMisTemarios(user);
+        const convs = await temariosService.getMisTemarios();
         const ids = new Set((Array.isArray(convs) ? convs : []).map((c: any) => c.id_oposicion));
         if (!ids.size) return;
 

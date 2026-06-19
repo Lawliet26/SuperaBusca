@@ -8,7 +8,6 @@ import { temariosService } from '@/services/temariosService';
 import { OposicionData, Oposicion } from '@/types';
 import { SkeletonList } from '../shared/Skeletons';
 import { OposicionDetailModal } from '../Oposiciones/OposicionDetailModal';
-import { useAuth } from '@/context/AuthContext';
 import './Temarios.css';
 
 // Convierte la convocatoria (enriquecida desde n8n) al shape que espera el modal de detalle
@@ -29,7 +28,6 @@ const toOposicion = (o: OposicionData): Oposicion => ({
 });
 
 export const Temarios = () => {
-  const { user } = useAuth()
   const [oposiciones, setOposiciones] = useState<OposicionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [seleccionada, setSeleccionada] = useState<OposicionData | null>(null);
@@ -38,7 +36,7 @@ export const Temarios = () => {
     const fetchTemarios = async () => {
       try {
         setLoading(true);
-        const data = await temariosService.getMisTemarios(user);
+        const data = await temariosService.getMisTemarios();
         setOposiciones(data);
       } catch (error) {
         notify.error('Error al cargar los temarios');

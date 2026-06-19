@@ -45,8 +45,10 @@ interface RevisionAPIResponse {
 }
 
 export const temariosService = {
-  async getMisTemarios(user: any): Promise<any[]> {
-    const response = await api.get<any>(`/mis-temarios?usuario_id=${user.id}`);
+  // La identidad se resuelve en n8n desde el JWT (jwtPayload.userId), no desde la URL.
+  // No enviamos usuario_id: el backend ignora cualquier parámetro y devuelve solo lo del dueño del token.
+  async getMisTemarios(): Promise<any[]> {
+    const response = await api.get<any>('/mis-temarios');
     const dashboard = response?.data?.[0]?.dashboard_data;
     return Array.isArray(dashboard) ? dashboard : [];
   }

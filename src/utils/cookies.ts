@@ -1,66 +1,55 @@
-// Utilidad para manejar cookies con encriptación básica usando Base64 + codificación
+// Almacén local de la sesión.
+//
+// NOTA DE SEGURIDAD: acá NO hay "encriptación". La versión anterior usaba
+// base64 + reverse con una key hardcodeada en el bundle, que es ofuscación
+// trivial (reversible en segundos desde la consola) y solo daba falsa
+// sensación de seguridad. La quitamos.
+//
+// El token de acceso viaja en el header Authorization (Bearer) hacia una API
+// en otro dominio; estas cookies son únicamente el almacenamiento local del
+// lado del cliente. La protección real frente a robo de token es minimizar XSS
+// + TTL corto del JWT, no ofuscar el valor en la cookie.
 
-const ENCRYPTION_KEY = 'OpoReview2024SecretKey';
+// Secure solo cuando estamos sobre HTTPS (en http://localhost de dev, Secure
+// impediría guardar la cookie en algunos navegadores).
+const isSecureContext = (): boolean =>
+  typeof location !== 'undefined' && location.protocol === 'https:';
 
-// Función para encriptar datos
-const encrypt = (data: string): string => {
-  try {
-    // Añadir la key como salt y codificar en base64
-    const salted = `${ENCRYPTION_KEY}:${data}`;
-    const encoded = btoa(encodeURIComponent(salted));
-    // Ofuscar más el resultado
-    return encoded.split('').reverse().join('');
-  } catch {
-    return '';
-  }
-};
-
-// Función para desencriptar datos
-const decrypt = (encryptedData: string): string => {
-  try {
-    // Revertir la ofuscación
-    const reversed = encryptedData.split('').reverse().join('');
-    // Decodificar base64
-    const decoded = decodeURIComponent(atob(reversed));
-    // Remover el salt
-    const parts = decoded.split(':');
-    if (parts[0] === ENCRYPTION_KEY) {
-      return parts.slice(1).join(':');
-    }
-    return '';
-  } catch {
-    return '';
-  }
-};
-
-// Establecer una cookie encriptada
+// Establecer una cookie
 export const setCookie = (name: string, value: unknown, days: number = 7): void => {
   const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
-  const encryptedValue = encrypt(stringValue);
-  
+
   const expires = new Date();
   expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-  
-  document.cookie = `${name}=${encryptedValue};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
+
+  const secure = isSecureContext() ? ';Secure' : '';
+  document.cookie = `${name}=${encodeURIComponent(stringValue)};expires=${expires.toUTCString()};path=/;SameSite=Strict${secure}`;
 };
 
-// Obtener y desencriptar una cookie
+// Obtener una cookie
 export const getCookie = <T = string>(name: string): T | null => {
   const nameEQ = `${name}=`;
   const cookies = document.cookie.split(';');
-  
+
   for (let cookie of cookies) {
     cookie = cookie.trim();
     if (cookie.indexOf(nameEQ) === 0) {
-      const encryptedValue = cookie.substring(nameEQ.length);
-      const decryptedValue = decrypt(encryptedValue);
-      
-      if (!decryptedValue) return null;
-      
+      const raw = cookie.substring(nameEQ.length);
+      if (!raw) return null;
+
+      let value: string;
       try {
-        return JSON.parse(decryptedValue) as T;
+        value = decodeURIComponent(raw);
       } catch {
-        return decryptedValue as unknown as T;
+        // Cookie en formato viejo (ofuscado) o corrupta: la tratamos como inválida.
+        return null;
+      }
+
+      try {
+        return JSON.parse(value) as T;
+      } catch {
+        // Valor string plano (ej: un token JWT).
+        return value as unknown as T;
       }
     }
   }
