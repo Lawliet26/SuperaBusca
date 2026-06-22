@@ -9,15 +9,34 @@ import {
   Tag,
   Spin,
   Button,
+  Modal,
+  Form,
+  ConfigProvider,
+  theme,
 } from 'antd';
 import {
   SearchOutlined,
   ReloadOutlined,
   EyeOutlined,
   FilterOutlined,
+  UserAddOutlined,
+  KeyOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { usuariosService, UsuarioAdmin } from '../../services/usuariosService';
+import { usuariosService, UsuarioAdmin, CrearUsuarioPayload } from '../../services/usuariosService';
+import { notify } from '@/utils/notify';
+
+// Tema claro para los modales (la app va en oscuro y el Modal heredaría ilegible)
+const LIGHT_MODAL = {
+  algorithm: theme.defaultAlgorithm,
+  token: {
+    colorBgContainer: '#ffffff',
+    colorText: '#1a2332',
+    colorTextSecondary: '#5a6678',
+    colorBorder: '#d1d5db',
+    colorPrimary: '#23C27B',
+  },
+};
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -45,6 +64,15 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion }) =
   const [total, setTotal] = useState(0);
   const [expandedKeys, setExpandedKeys] = useState<number[]>([]);
 
+  // Crear usuario
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createForm] = Form.useForm();
+  const rolSeleccionado = Form.useWatch('rol', createForm);
+  // Cambiar contraseña
+  const [pwdTarget, setPwdTarget] = useState<UsuarioAdmin | null>(null);
+  const [pwdForm] = Form.useForm();
+  const [saving, setSaving] = useState(false);
+
   const loadData = async () => {
     setLoading(true);
     try {
@@ -67,6 +95,42 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion }) =
     const timer = setTimeout(() => loadData(), 300);
     return () => clearTimeout(timer);
   }, [searchText, filterRol, currentPage, pageSize]);
+
+  const handleCrear = async (values: CrearUsuarioPayload) => {
+    setSaving(true);
+    try {
+      await usuariosService.crearUsuario({
+        email: values.email.trim(),
+        nombre: values.nombre.trim(),
+        password: values.password,
+        rol: values.rol,
+        especialidad: values.rol === 'PROFESOR' ? values.especialidad?.trim() : undefined,
+      });
+      notify.success('Usuario creado correctamente');
+      setCreateOpen(false);
+      createForm.resetFields();
+      loadData();
+    } catch (err: any) {
+      notify.error(err?.response?.data?.message || 'No se pudo crear el usuario');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCambiarPassword = async (values: { password: string }) => {
+    if (!pwdTarget) return;
+    setSaving(true);
+    try {
+      await usuariosService.cambiarPassword(pwdTarget.id, values.password);
+      notify.success(`Contraseña actualizada para ${pwdTarget.nombre}`);
+      setPwdTarget(null);
+      pwdForm.resetFields();
+    } catch (err: any) {
+      notify.error(err?.response?.data?.message || 'No se pudo cambiar la contraseña');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const columns: ColumnsType<UsuarioAdmin> = [
     {
@@ -121,6 +185,22 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion }) =
           </Button>
         );
       },
+    },
+    {
+      title: 'Acciones',
+      key: 'acciones',
+      width: 160,
+      render: (_, record) => (
+        <Button
+          type="text"
+          icon={<KeyOutlined />}
+          size="small"
+          className="edit-btn"
+          onClick={() => { setPwdTarget(record); pwdForm.resetFields(); }}
+        >
+          Contraseña
+        </Button>
+      ),
     },
   ];
 
@@ -208,6 +288,13 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion }) =
             <Button icon={<ReloadOutlined />} onClick={loadData} loading={loading}>
               Recargar
             </Button>
+            <Button
+              type="primary"
+              icon={<UserAddOutlined />}
+              onClick={() => { createForm.resetFields(); setCreateOpen(true); }}
+            >
+              Crear usuario
+            </Button>
           </Space>
         </div>
         <div className="filters-content">
@@ -269,6 +356,99 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion }) =
           />
         )}
       </Card>
+
+      <ConfigProvider theme={LIGHT_MODAL}>
+        {/* Crear usuario */}
+        <Modal
+          title="Crear usuario"
+          open={createOpen}
+          onCancel={() => setCreateOpen(false)}
+          onOk={() => createForm.submit()}
+          okText="Crear"
+          cancelText="Cancelar"
+          confirmLoading={saving}
+          width={520}
+          destroyOnClose
+        >
+          <Form form={createForm} layout="vertical" onFinish={handleCrear} style={{ marginTop: 8 }} initialValues={{ rol: 'ALUMNO' }}>
+            <Form.Item
+              name="nombre"
+              label="Nombre"
+              rules={[{ required: true, message: 'El nombre es obligatorio' }]}
+            >
+              <Input placeholder="Nombre completo" maxLength={150} />
+            </Form.Item>
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[
+                { required: true, message: 'El email es obligatorio' },
+                { type: 'email', message: 'Email no válido' },
+              ]}
+            >
+              <Input placeholder="correo@ejemplo.com" />
+            </Form.Item>
+            <Form.Item
+              name="password"
+              label="Contraseña"
+              rules={[
+                { required: true, message: 'La contraseña es obligatoria' },
+                { min: 8, message: 'Mínimo 8 caracteres' },
+              ]}
+            >
+              <Input.Password placeholder="Mínimo 8 caracteres" autoComplete="new-password" />
+            </Form.Item>
+            <Form.Item
+              name="rol"
+              label="Rol"
+              rules={[{ required: true, message: 'Selecciona un rol' }]}
+            >
+              {/* Solo ALUMNO/PROFESOR. ADMINISTRADOR es exclusivo de desarrollo. */}
+              <Select
+                options={[
+                  { value: 'ALUMNO', label: 'Alumno' },
+                  { value: 'PROFESOR', label: 'Profesor' },
+                ]}
+              />
+            </Form.Item>
+            {rolSeleccionado === 'PROFESOR' && (
+              <Form.Item
+                name="especialidad"
+                label="Especialidad"
+                rules={[{ required: true, message: 'La especialidad es obligatoria para un profesor' }]}
+              >
+                <Input placeholder="Ej: Derecho Administrativo" maxLength={150} />
+              </Form.Item>
+            )}
+          </Form>
+        </Modal>
+
+        {/* Cambiar contraseña */}
+        <Modal
+          title={pwdTarget ? `Cambiar contraseña — ${pwdTarget.nombre}` : 'Cambiar contraseña'}
+          open={!!pwdTarget}
+          onCancel={() => setPwdTarget(null)}
+          onOk={() => pwdForm.submit()}
+          okText="Actualizar"
+          cancelText="Cancelar"
+          confirmLoading={saving}
+          width={460}
+          destroyOnClose
+        >
+          <Form form={pwdForm} layout="vertical" onFinish={handleCambiarPassword} style={{ marginTop: 8 }}>
+            <Form.Item
+              name="password"
+              label="Nueva contraseña"
+              rules={[
+                { required: true, message: 'Ingresá la nueva contraseña' },
+                { min: 8, message: 'Mínimo 8 caracteres' },
+              ]}
+            >
+              <Input.Password placeholder="Mínimo 8 caracteres" autoComplete="new-password" />
+            </Form.Item>
+          </Form>
+        </Modal>
+      </ConfigProvider>
     </div>
   );
 };
