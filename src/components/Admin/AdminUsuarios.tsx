@@ -414,10 +414,16 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion }) =
             {rolSeleccionado === 'PROFESOR' && (
               <Form.Item
                 name="especialidad"
-                label="Especialidad"
-                rules={[{ required: true, message: 'La especialidad es obligatoria para un profesor' }]}
+                label="Especialidad (línea a la que se dirige)"
+                rules={[{ required: true, message: 'Indica si el profesor va a Supera o Patrio' }]}
               >
-                <Input placeholder="Ej: Derecho Administrativo" maxLength={150} />
+                <Select
+                  placeholder="¿Supera o Patrio?"
+                  options={[
+                    { value: 'Supera', label: 'Supera' },
+                    { value: 'Patrio', label: 'Patrio' },
+                  ]}
+                />
               </Form.Item>
             )}
           </Form>
