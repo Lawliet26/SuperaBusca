@@ -16,6 +16,8 @@ import dayjs from 'dayjs';
 import { notify } from '@/utils/notify';
 import { recursosService } from '../../services/recursosService';
 import { useAuth } from '../../context/AuthContext';
+import { OposicionDetailModal } from '../Oposiciones/OposicionDetailModal';
+import { Oposicion } from '@/types';
 import api from '../../config/api';
 import './RevisionManual.css';
 
@@ -29,7 +31,35 @@ interface RevisionManualItem {
   profesor_asignado_id?: number | null;
   profesor_asignado_nombre?: string | null;
   linea?: string | null;
+  // Detalle de la oposición (enriquecido desde n8n para el modal de detalle)
+  estado?: string;
+  provincia?: string;
+  nombre_municipio?: string;
+  categoria?: string;
+  num_plazas?: number;
+  fecha_convocatoria?: string;
+  fecha_fin?: string;
+  url_bases_oficiales?: string;
+  url_convocatoria?: string;
+  observaciones?: string;
 }
+
+// Convierte el item de revisión al shape que espera el modal de detalle (igual que en Oposiciones)
+const toOposicion = (i: RevisionManualItem): Oposicion => ({
+  id: String(i.oposicion_id),
+  titulo: i.oposicion_nombre,
+  descripcion: i.observaciones || '',
+  categoria: i.categoria || '',
+  provincia: i.provincia || '',
+  fechaConvocatoria: i.fecha_convocatoria || '',
+  fechaFinalizacion: i.fecha_fin,
+  plazas: i.num_plazas ?? 0,
+  estado: i.estado === 'Abierta' ? 'abierta' : i.estado === 'Cerrada' ? 'cerrada' : 'en curso',
+  urlBasesOficiales: i.url_bases_oficiales,
+  urlConvocatoria: i.url_convocatoria,
+  nombre_municipio: i.nombre_municipio,
+  tieneTemarioListo: false,
+});
 
 const formatFecha = (fecha: string) => {
   const [year, month, day] = fecha.split('-');
@@ -66,6 +96,9 @@ const RevisionManual: React.FC = () => {
 
   // Advertencia relación de temario
   const [relacionWarningVisible, setRelacionWarningVisible] = useState(false);
+
+  // Detalle de la oposición (modal igual al de Oposiciones)
+  const [detalleItem, setDetalleItem] = useState<RevisionManualItem | null>(null);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -359,14 +392,17 @@ const RevisionManual: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 * index }}
+                onClick={() => setDetalleItem(item)}
+                style={{ cursor: 'pointer' }}
+                title="Ver detalle de la oposición"
               >
                 <div className="rm-card-content">
                   <h3 className="rm-card-title">{item.oposicion_nombre}</h3>
                   <div className="rm-card-meta">
                     <span className="rm-card-id">ID Temario: {item.temario_id}</span>
-                    {item.fecha_primera_solicitud && (
+                    {item.fecha_convocatoria && (
                       <span className="rm-card-fecha">
-                        <CalendarOutlined /> {formatFecha(item.fecha_primera_solicitud)}
+                        <CalendarOutlined /> Inicio convocatoria: {formatFecha(String(item.fecha_convocatoria).slice(0, 10))}
                       </span>
                     )}
                     {isAdmin && (
@@ -379,7 +415,7 @@ const RevisionManual: React.FC = () => {
                     )}
                   </div>
                 </div>
-              <div className="rm-card-actions">
+              <div className="rm-card-actions" onClick={(e) => e.stopPropagation()}>
                 <Button
                   type="primary"
                   icon={<UploadOutlined />}
@@ -594,6 +630,13 @@ const RevisionManual: React.FC = () => {
       >
         <p>La relación de temario no se puede eliminar directamente. Podés reemplazarla subiendo un nuevo archivo PDF.</p>
       </Modal>
+
+      {/* Modal Detalle de la Oposición (igual que en Oposiciones) */}
+      <OposicionDetailModal
+        isOpen={!!detalleItem}
+        onClose={() => setDetalleItem(null)}
+        oposicion={detalleItem ? toOposicion(detalleItem) : null}
+      />
     </motion.div>
   );
 };
