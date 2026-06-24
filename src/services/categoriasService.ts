@@ -34,12 +34,16 @@ export const categoriasService = {
       throw error;
     }
   },
-  async deleteCategoria(id: number): Promise<void> {
-    try {
-      await api.delete(`/categorias/${id}`);
-    } catch (error) {
-      console.error('Error eliminando categoría:', error);
-      throw error;
-    }
+  // Elimina una categoría. Si está en uso por oposiciones y no se pasa reassignTo,
+  // el backend NO la borra y devuelve { borrado: false, en_uso }. Con reassignTo,
+  // reasigna esas oposiciones al nuevo valor y luego borra.
+  async deleteCategoria(
+    id: number,
+    reassignTo?: number
+  ): Promise<{ success: boolean; borrado: boolean; en_uso: number; reasignadas: number; oposiciones?: { id: number; titulo: string }[] }> {
+    const params: Record<string, number> = { id };
+    if (reassignTo != null) params.reassign_to = reassignTo;
+    const response = await api.delete('/eliminar-categoria', { params });
+    return response.data;
   }
 };

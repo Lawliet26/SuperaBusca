@@ -32,12 +32,13 @@ export const provinciasService = {
       throw error;
     }
   },
-  async deleteProvincia(id: number): Promise<void> {
-    try {
-      await api.delete(`/provincias/${id}`);
-    } catch (error) {
-      console.error('Error eliminando provincia:', error);
-      throw error;
-    }
+  async deleteProvincia(
+    id: number,
+    reassignTo?: number
+  ): Promise<{ success: boolean; borrado: boolean; en_uso: number; reasignadas: number; oposiciones?: { id: number; titulo: string }[] }> {
+    const params: Record<string, number> = { id };
+    if (reassignTo != null) params.reassign_to = reassignTo;
+    const response = await api.delete('/eliminar-provincia', { params });
+    return response.data;
   }
 };

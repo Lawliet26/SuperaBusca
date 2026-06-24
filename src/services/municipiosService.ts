@@ -33,12 +33,13 @@ export const municipiosService = {
       throw error;
     }
   },
-  async deleteMunicipio(id: number): Promise<void> {
-    try {
-      await api.delete(`/municipios/${id}`);
-    } catch (error) {
-      console.error('Error eliminando municipio:', error);
-      throw error;
-    }
+  async deleteMunicipio(
+    id: number,
+    reassignTo?: number
+  ): Promise<{ success: boolean; borrado: boolean; en_uso: number; reasignadas: number; oposiciones?: { id: number; titulo: string }[] }> {
+    const params: Record<string, number> = { id };
+    if (reassignTo != null) params.reassign_to = reassignTo;
+    const response = await api.delete('/eliminar-municipio', { params });
+    return response.data;
   }
 };

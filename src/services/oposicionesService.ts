@@ -208,5 +208,16 @@ export const oposicionesService = {
       console.error('Error creando oposición:', error);
       throw error;
     }
+  },
+
+  // Elimina la oposición y todo lo asociado (solicitudes, temarios, revisiones,
+  // recursos, etc.). Solo ADMINISTRADOR (validado en el backend).
+  async deleteOposicion(id: number): Promise<void> {
+    try {
+      await api.delete('/eliminar-oposicion', { params: { id } });
+    } catch (error) {
+      console.error('Error eliminando oposición:', error);
+      throw error;
+    }
   }
 };

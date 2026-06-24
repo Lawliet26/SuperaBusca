@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { notify } from '@/utils/notify';
 import {
@@ -68,7 +68,7 @@ const TIPOS_OPOSICION = ['Convocatoria', 'Oferta'];
 const ESTADOS_OPOSICION = ['Abierta', 'Cerrada', 'En curso'];
 
 const AdminOposiciones: React.FC = () => {
-  const { user, isProfesor } = useAuth();
+  const { user, isProfesor, isAdmin } = useAuth();
   const ADMIN_TAB_KEY = 'oporadar_admin_tab';
   const [activeTab, setActiveTab] = useState<string>(() => {
     const saved = localStorage.getItem(ADMIN_TAB_KEY);
@@ -150,6 +150,12 @@ const AdminOposiciones: React.FC = () => {
   const [recursoViewTitulo, setRecursoViewTitulo] = useState('');
   const [recursoViewOposicionId, setRecursoViewOposicionId] = useState<number | null>(null);
   const [relacionWarningVisible, setRelacionWarningVisible] = useState(false);
+
+  // Eliminación de catálogos (categoría/provincia/municipio) con reasignación
+  type CatalogoTipo = 'categoria' | 'provincia' | 'municipio';
+  const [deletingCatalog, setDeletingCatalog] = useState(false);
+  const [reassignModal, setReassignModal] = useState<{ tipo: CatalogoTipo; id: number; nombre: string; enUso: number; oposiciones: { id: number; titulo: string }[] } | null>(null);
+  const [reassignTo, setReassignTo] = useState<number | undefined>(undefined);
 
   const openRecursoView = async (record: OposicionAdmin) => {
     setRecursoViewTitulo(record.titulo);
@@ -484,6 +490,123 @@ const AdminOposiciones: React.FC = () => {
   };
 
 
+  const CATALOGO_LABEL: Record<CatalogoTipo, string> = {
+    categoria: 'categoría',
+    provincia: 'provincia',
+    municipio: 'municipio',
+  };
+
+  const deleteCatalogo = (tipo: CatalogoTipo, id: number, reassignTo?: number) => {
+    if (tipo === 'categoria') return categoriasService.deleteCategoria(id, reassignTo);
+    if (tipo === 'provincia') return provinciasService.deleteProvincia(id, reassignTo);
+    return municipiosService.deleteMunicipio(id, reassignTo);
+  };
+
+  // Intento de borrado: si el backend dice que está en uso, abrimos el modal de reasignación
+  const intentarBorrarCatalogo = async (tipo: CatalogoTipo, item: { id: number; nombre: string }) => {
+    setDeletingCatalog(true);
+    try {
+      const res = await deleteCatalogo(tipo, item.id);
+      if (res.borrado) {
+        notify.success(`Se eliminó la ${CATALOGO_LABEL[tipo]} correctamente`);
+        await loadCatalogs();
+        loadData();
+      } else {
+        setReassignTo(undefined);
+        setReassignModal({ tipo, id: item.id, nombre: item.nombre, enUso: res.en_uso, oposiciones: res.oposiciones || [] });
+      }
+    } catch {
+      notify.error('No se pudo eliminar (¿tenés permisos de administrador?)');
+    } finally {
+      setDeletingCatalog(false);
+    }
+  };
+
+  const confirmDeleteCatalogo = (tipo: CatalogoTipo, item: { id: number; nombre: string }) => {
+    Modal.confirm({
+      title: `¿Eliminar la ${CATALOGO_LABEL[tipo]} "${item.nombre}"?`,
+      icon: <WarningOutlined style={{ color: '#d97706' }} />,
+      content: 'Si está en uso por alguna oposición, te pediremos con qué valor reemplazarla antes de borrarla.',
+      okText: 'Eliminar',
+      okButtonProps: { danger: true },
+      cancelText: 'Cancelar',
+      onOk: () => intentarBorrarCatalogo(tipo, item),
+    });
+  };
+
+  const confirmarReasignarYBorrar = async () => {
+    if (!reassignModal || reassignTo == null) return;
+    setDeletingCatalog(true);
+    try {
+      const res = await deleteCatalogo(reassignModal.tipo, reassignModal.id, reassignTo);
+      if (res.borrado) {
+        notify.success(`Se reasignaron ${res.reasignadas} oposición(es) y se eliminó la ${CATALOGO_LABEL[reassignModal.tipo]}`);
+        setReassignModal(null);
+        setReassignTo(undefined);
+        await loadCatalogs();
+        loadData();
+      } else {
+        notify.error('No se pudo eliminar');
+      }
+    } catch {
+      notify.error('Error al reasignar y eliminar');
+    } finally {
+      setDeletingCatalog(false);
+    }
+  };
+
+  // Opciones de reemplazo: los demás items del mismo catálogo (excluye el que se borra)
+  const opcionesReasignacion = useMemo(() => {
+    if (!reassignModal) return [];
+    const lista = reassignModal.tipo === 'categoria' ? categorias : reassignModal.tipo === 'provincia' ? provincias : municipios;
+    return lista.filter((x) => x.id !== reassignModal.id).map((x) => ({ value: x.id, label: x.nombre }));
+  }, [reassignModal, categorias, provincias, municipios]);
+
+  const confirmDeleteOposicion = (record: OposicionAdmin) => {
+    Modal.confirm({
+      title: `¿Eliminar la oposición "${record.titulo}"?`,
+      icon: <WarningOutlined style={{ color: '#d97706' }} />,
+      width: 520,
+      content: (
+        <span>
+          Se eliminarán también las <strong>solicitudes de temario</strong> y todo lo asociado
+          (temarios, revisiones y recursos) de esta oposición. Esto puede afectar análisis posteriores.
+          Esta acción <strong>no se puede deshacer</strong>.
+        </span>
+      ),
+      okText: 'Eliminar definitivamente',
+      okButtonProps: { danger: true },
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        try {
+          await oposicionesService.deleteOposicion(record.id);
+          notify.success('Oposición eliminada correctamente');
+          loadData();
+        } catch {
+          notify.error('No se pudo eliminar la oposición');
+        }
+      },
+    });
+  };
+
+  // Render de cada opción del select de catálogo con botón de eliminar (solo admin)
+  const renderCatalogoOption = (tipo: CatalogoTipo) => (option: { value: any; label: any }) => {
+    if (!isAdmin) return option.label;
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{option.label}</span>
+        <DeleteOutlined
+          style={{ color: '#ef4444', flexShrink: 0 }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            confirmDeleteCatalogo(tipo, { id: Number(option.value), nombre: String(option.label) });
+          }}
+        />
+      </div>
+    );
+  };
+
   const renderSelectWithAdd = (
     value: number | undefined,
     options: { id: number; nombre: string }[],
@@ -491,6 +614,8 @@ const AdminOposiciones: React.FC = () => {
     onAddClick: () => void,
     placeholder: string
   ) => {
+    const tipo: CatalogoTipo | null =
+      field === 'provincia_id' ? 'provincia' : field === 'municipio_id' ? 'municipio' : field === 'categoria_id' ? 'categoria' : null;
     return (
       <Select
         showSearch
@@ -500,6 +625,7 @@ const AdminOposiciones: React.FC = () => {
         className="admin-select"
         placeholder={placeholder}
         options={options.map(opt => ({ value: opt.id, label: opt.nombre }))}
+        {...(tipo ? { optionRender: renderCatalogoOption(tipo) } : {})}
         classNames={{ popup: { root: 'admin-select-dropdown' } }}
         // @ts-ignore — dropdownRender deprecated in AntD v6 types but no functional replacement exists
         dropdownRender={(menu) => (
@@ -983,6 +1109,19 @@ const AdminOposiciones: React.FC = () => {
               />
             </Tooltip>
 
+            {isAdmin && (
+              <Tooltip title="Eliminar oposición">
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => confirmDeleteOposicion(record)}
+                  disabled={editingKey !== null}
+                  className="edit-btn"
+                />
+              </Tooltip>
+            )}
+
           </Space>
         );
       }
@@ -1079,6 +1218,7 @@ const AdminOposiciones: React.FC = () => {
                       className="filter-select-sm"
                       allowClear
                       options={provincias.map(p => ({ value: p.id, label: p.nombre }))}
+                      optionRender={renderCatalogoOption('provincia')}
                       // @ts-ignore
                       dropdownRender={(menu: React.ReactNode) => (
                         <>
@@ -1098,6 +1238,7 @@ const AdminOposiciones: React.FC = () => {
                       className="filter-select-sm"
                       allowClear
                       options={municipios.map(m => ({ value: m.id, label: m.nombre }))}
+                      optionRender={renderCatalogoOption('municipio')}
                       // @ts-ignore
                       dropdownRender={(menu: React.ReactNode) => (
                         <>
@@ -1117,6 +1258,7 @@ const AdminOposiciones: React.FC = () => {
                       className="filter-select-sm"
                       allowClear
                       options={categorias.map(c => ({ value: c.id, label: c.nombre }))}
+                      optionRender={renderCatalogoOption('categoria')}
                       // @ts-ignore
                       dropdownRender={(menu: React.ReactNode) => (
                         <>
@@ -1696,6 +1838,75 @@ const AdminOposiciones: React.FC = () => {
                       />
                     </Form.Item>
                   </Form>
+                </Modal>
+
+                {/* Modal reasignar y borrar catálogo en uso */}
+                <Modal
+                  open={!!reassignModal}
+                  title={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#d97706' }}>
+                      <WarningOutlined /> "{reassignModal?.nombre}" está en uso
+                    </span>
+                  }
+                  onCancel={() => { setReassignModal(null); setReassignTo(undefined); }}
+                  onOk={confirmarReasignarYBorrar}
+                  okText="Reasignar y eliminar"
+                  okButtonProps={{ danger: true, disabled: reassignTo == null }}
+                  cancelText="Cancelar"
+                  confirmLoading={deletingCatalog}
+                  className="admin-modal"
+                  width={520}
+                >
+                  <ConfigProvider
+                    theme={{
+                      algorithm: theme.defaultAlgorithm,
+                      token: { colorBgContainer: '#ffffff', colorText: '#1a2332', colorTextPlaceholder: '#9ca3af', colorBorder: '#d1d5db', colorPrimary: '#23C27B' },
+                      components: { Select: { colorBgContainer: '#ffffff', optionSelectedBg: 'rgba(35, 194, 123, 0.15)' } },
+                    }}
+                  >
+                    {reassignModal && (
+                      <p style={{ color: '#4a5568', marginBottom: 12 }}>
+                        Esta {CATALOGO_LABEL[reassignModal.tipo]} está asignada a <strong>{reassignModal.enUso}</strong> oposición(es).
+                        No se puede borrar mientras esté en uso. Estas son las oposiciones afectadas:
+                      </p>
+                    )}
+                    {reassignModal && reassignModal.oposiciones.length > 0 && (
+                      <div
+                        style={{
+                          maxHeight: 180,
+                          overflowY: 'auto',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: 8,
+                          padding: '8px 12px',
+                          marginBottom: 14,
+                          background: '#f8fafc',
+                        }}
+                      >
+                        {reassignModal.oposiciones.map((o) => (
+                          <div
+                            key={o.id}
+                            style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '4px 0', color: '#1a2332', fontSize: 13 }}
+                          >
+                            <Text type="secondary" style={{ fontSize: 12 }}>#{o.id}</Text>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.titulo}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <p style={{ color: '#4a5568', marginBottom: 8 }}>
+                      Elegí con qué valor reemplazarla. Esas oposiciones pasarán a usar el nuevo valor y luego se eliminará
+                      {reassignModal ? ` "${reassignModal.nombre}"` : ''}:
+                    </p>
+                    <Select
+                      style={{ width: '100%' }}
+                      showSearch
+                      optionFilterProp="label"
+                      placeholder="Reemplazar por..."
+                      value={reassignTo}
+                      onChange={(v) => setReassignTo(v)}
+                      options={opcionesReasignacion}
+                    />
+                  </ConfigProvider>
                 </Modal>
 
               </>
