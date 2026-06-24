@@ -43,6 +43,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
   };
 
+  // Cierre de sesión por INACTIVIDAD (no hay refresh de token).
+  // Mientras haya actividad del usuario (mouse/teclado/scroll/touch) la sesión se mantiene;
+  // tras 30 min sin actividad se cierra sesión. El tope absoluto lo da el TTL del token (8h) en n8n.
+  useEffect(() => {
+    if (!user) return;
+    const IDLE_MS = 30 * 60 * 1000; // 30 minutos
+    let timer: ReturnType<typeof setTimeout>;
+    const reset = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => { logout(); }, IDLE_MS);
+    };
+    const eventos = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+    eventos.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    reset();
+    return () => {
+      clearTimeout(timer);
+      eventos.forEach((e) => window.removeEventListener(e, reset));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   const isProfesor = user?.rol === 'PROFESOR';
   const isAdmin = user?.rol === 'ADMINISTRADOR';
 

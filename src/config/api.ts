@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getCookie, setCookie, deleteCookie } from '../utils/cookies';
+import { getCookie, deleteCookie } from '../utils/cookies';
 
 const API_BASE_URL = import.meta.env.VITE_REACT_API_BASE_URL;
 
@@ -31,20 +31,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Flag para evitar bucles infinitos de refresh
-let isRefreshing = false;
-let pendingRequests: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
-
-const processPendingRequests = (newToken: string) => {
-  pendingRequests.forEach(({ resolve }) => resolve(newToken));
-  pendingRequests = [];
-};
-
-const rejectPendingRequests = (err: unknown) => {
-  pendingRequests.forEach(({ reject }) => reject(err));
-  pendingRequests = [];
-};
-
 const clearSession = () => {
   deleteCookie(ACCESS_TOKEN_KEY);
   deleteCookie(REFRESH_TOKEN_KEY);
@@ -61,7 +47,10 @@ const isEmptyObject = (val: unknown): boolean =>
   !Array.isArray(val) &&
   Object.keys(val as Record<string, unknown>).length === 0;
 
-// Interceptor de response: normaliza arrays vacíos de n8n y maneja 401 renovando el token
+// Interceptor de response: normaliza arrays vacíos de n8n y maneja el 401.
+// SIN refresh de token: si el access token expira o es inválido, se cierra la sesión y
+// se vuelve al login. La vida de la sesión la define el TTL del token (8h) + el cierre
+// por inactividad del frontend (ver AuthContext: actividad la mantiene, inactividad la corta).
 api.interceptors.response.use(
   (response) => {
     if (Array.isArray(response.data)) {
@@ -69,77 +58,20 @@ api.interceptors.response.use(
     }
     return response;
   },
-  async (error) => {
-    const originalRequest = error.config;
-
-    // Si no es 401, rechazar directamente
-    if (error.response?.status !== 401) {
-      return Promise.reject(error);
-    }
-
-    // Si ya se intentó el retry en esta petición, no volver a intentar
-    if (originalRequest._retry) {
-      return Promise.reject(error);
-    }
-
-    // Si el usuario no tiene sesión activa, no intentar refresh
-    const userCookie = getCookie(AUTH_COOKIE_NAME);
-    if (!userCookie) {
-      return Promise.reject(error);
-    }
-
-    const refreshToken = getCookie<string>(REFRESH_TOKEN_KEY);
-
-    // Sin refresh token: limpiar sesión y redirigir
-    if (!refreshToken) {
+  (error) => {
+    // 401/403 puede ser por TOKEN (expirado/inválido/mal formado → cerrar sesión) o por
+    // AUTORIZACIÓN de negocio (ej: un no-admin intenta borrar → 403 con { success:false }).
+    // Los errores de negocio (traen `success`) NO cierran sesión: se propagan para mostrarlos.
+    const status = error.response?.status;
+    const data = error.response?.data;
+    const esErrorDeNegocio = data && typeof data === 'object' && 'success' in (data as object);
+    if ((status === 401 || status === 403) && !esErrorDeNegocio && getCookie(AUTH_COOKIE_NAME)) {
       clearSession();
-      window.location.href = '/';
-      return Promise.reject(error);
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
     }
-
-    // Si ya hay un refresh en curso, encolar la petición
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        pendingRequests.push({
-          resolve: (newToken: string) => {
-            // BUG FIX: marcar _retry para evitar nuevo ciclo si esta petición también falla
-            originalRequest._retry = true;
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            resolve(api(originalRequest));
-          },
-          reject,
-        });
-      });
-    }
-
-    originalRequest._retry = true;
-    isRefreshing = true;
-
-    try {
-      // Llamada directa con axios para evitar ciclos en el interceptor
-      const { data } = await axios.post(
-        `${API_BASE_URL}/refreshOpo`,
-        { refreshToken },
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-
-      const newAccessToken: string = data.accessToken;
-      setCookie(ACCESS_TOKEN_KEY, newAccessToken, ACCESS_TOKEN_EXPIRY_DAYS);
-
-      // BUG FIX: liberar el flag ANTES de procesar las encoladas para no bloquear
-      isRefreshing = false;
-      processPendingRequests(newAccessToken);
-
-      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-      return api(originalRequest);
-    } catch (refreshError) {
-      // Refresh falló: rechazar las encoladas, limpiar sesión y redirigir
-      isRefreshing = false;
-      rejectPendingRequests(refreshError);
-      clearSession();
-      window.location.href = '/';
-      return Promise.reject(refreshError);
-    }
+    return Promise.reject(error);
   }
 );
 
