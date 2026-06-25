@@ -117,11 +117,13 @@
 
 .rm-card-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
 .btn-subir-temario {
-  flex: 1;
+  flex: 1 1 calc(50% - 6px);
+  min-width: 120px;
   background: linear-gradient(135deg, #0f4c81 0%, #1e6fad 100%) !important;
   border: none !important;
   height: 40px !important;
@@ -130,7 +132,8 @@
 }
 
 .btn-agregar-recursos {
-  flex: 1;
+  flex: 1 1 calc(50% - 6px);
+  min-width: 120px;
   height: 40px !important;
   border-radius: 8px !important;
   font-weight: 600 !important;

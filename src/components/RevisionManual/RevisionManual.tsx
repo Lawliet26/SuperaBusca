@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   Button, Modal, Upload, Form, Input, Radio,
-  Table, Tag, Space, Spin, Typography, DatePicker, Select
+  Table, Tag, Space, Spin, Typography, DatePicker, Select,
+  ConfigProvider, theme
 } from 'antd';
 import {
   UploadOutlined, FileAddOutlined, FolderOpenOutlined,
@@ -15,6 +16,7 @@ import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { notify } from '@/utils/notify';
 import { recursosService } from '../../services/recursosService';
+import { profesoresService, ProfesorActivo } from '../../services/profesoresService';
 import { useAuth } from '../../context/AuthContext';
 import { OposicionDetailModal } from '../Oposiciones/OposicionDetailModal';
 import { Oposicion } from '@/types';
@@ -99,6 +101,45 @@ const RevisionManual: React.FC = () => {
 
   // Detalle de la oposición (modal igual al de Oposiciones)
   const [detalleItem, setDetalleItem] = useState<RevisionManualItem | null>(null);
+
+  // Reasignar profesor (solo admin)
+  const [profesores, setProfesores] = useState<ProfesorActivo[]>([]);
+  const [reasignarItem, setReasignarItem] = useState<RevisionManualItem | null>(null);
+  const [reasignarTo, setReasignarTo] = useState<number | undefined>(undefined);
+  const [reasignando, setReasignando] = useState(false);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    profesoresService.getProfesores().then(setProfesores).catch(() => setProfesores([]));
+  }, [isAdmin]);
+
+  const openReasignar = (item: RevisionManualItem) => {
+    setReasignarItem(item);
+    setReasignarTo(item.profesor_asignado_id ?? undefined);
+  };
+
+  const handleReasignar = async () => {
+    if (!reasignarItem || reasignarTo == null) return;
+    setReasignando(true);
+    try {
+      await profesoresService.reasignarProfesor(reasignarItem.temario_id, reasignarTo);
+      const prof = profesores.find((p) => p.id === reasignarTo);
+      setItems((prev) =>
+        prev.map((i) =>
+          i.temario_id === reasignarItem.temario_id
+            ? { ...i, profesor_asignado_id: reasignarTo, profesor_asignado_nombre: prof?.nombre ?? i.profesor_asignado_nombre }
+            : i
+        )
+      );
+      notify.success(`Revisión reasignada a ${prof?.nombre ?? 'profesor'}`);
+      setReasignarItem(null);
+      setReasignarTo(undefined);
+    } catch {
+      notify.error('No se pudo reasignar la revisión');
+    } finally {
+      setReasignando(false);
+    }
+  };
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -431,6 +472,15 @@ const RevisionManual: React.FC = () => {
                 >
                   Agregar Recursos
                 </Button>
+                {isAdmin && (
+                  <Button
+                    icon={<SwapOutlined />}
+                    onClick={() => openReasignar(item)}
+                    className="btn-agregar-recursos"
+                  >
+                    Reasignar
+                  </Button>
+                )}
               </div>
             </motion.div>
           ))}
@@ -629,6 +679,41 @@ const RevisionManual: React.FC = () => {
         }
       >
         <p>La relación de temario no se puede eliminar directamente. Podés reemplazarla subiendo un nuevo archivo PDF.</p>
+      </Modal>
+
+      {/* Modal Reasignar profesor (solo admin) */}
+      <Modal
+        title={`Reasignar revisión${reasignarItem ? ` — ${reasignarItem.oposicion_nombre}` : ''}`}
+        open={!!reasignarItem}
+        onCancel={() => { setReasignarItem(null); setReasignarTo(undefined); }}
+        onOk={handleReasignar}
+        okText="Reasignar"
+        okButtonProps={{ disabled: reasignarTo == null }}
+        confirmLoading={reasignando}
+        cancelText="Cancelar"
+        className="rm-modal"
+        width={480}
+      >
+        <ConfigProvider
+          theme={{
+            algorithm: theme.defaultAlgorithm,
+            token: { colorBgContainer: '#ffffff', colorText: '#1a2332', colorTextPlaceholder: '#9ca3af', colorBorder: '#d1d5db', colorPrimary: '#23C27B' },
+            components: { Select: { colorBgContainer: '#ffffff', optionSelectedBg: 'rgba(35,194,123,0.15)' } },
+          }}
+        >
+          <p style={{ color: '#4a5568', marginBottom: 12 }}>
+            Profesor actual: <strong>{reasignarItem?.profesor_asignado_nombre || 'Sin asignar'}</strong>
+          </p>
+          <Select
+            style={{ width: '100%' }}
+            showSearch
+            optionFilterProp="label"
+            placeholder="Elegí el profesor"
+            value={reasignarTo}
+            onChange={(v) => setReasignarTo(v)}
+            options={profesores.map((p) => ({ value: p.id, label: `${p.nombre} — ${p.especialidad}` }))}
+          />
+        </ConfigProvider>
       </Modal>
 
       {/* Modal Detalle de la Oposición (igual que en Oposiciones) */}
