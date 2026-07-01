@@ -219,5 +219,19 @@ export const oposicionesService = {
       console.error('Error eliminando oposición:', error);
       throw error;
     }
+  },
+
+  // Lista de estudiantes que solicitaron el temario de una oposición (nº + email).
+  async getSolicitantes(oposicionId: number): Promise<{ num: number; email: string }[]> {
+    try {
+      const response = await api.post<{ num: number; email: string }[]>(
+        '/solicitantes-temario',
+        { oposicion_id: oposicionId }
+      );
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Error obteniendo solicitantes:', error);
+      throw error;
+    }
   }
 };

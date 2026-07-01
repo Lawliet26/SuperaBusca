@@ -52,9 +52,11 @@ const ROL_COLOR: Record<string, string> = {
 
 interface AdminUsuariosProps {
   onGestionarOposicion?: (nombre: string) => void;
+  // Búsqueda impuesta desde afuera (ej: "ver este solicitante en Usuarios")
+  searchOverride?: string;
 }
 
-const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion }) => {
+const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion, searchOverride }) => {
   const [usuarios, setUsuarios] = useState<UsuarioAdmin[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -95,6 +97,15 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion }) =
     const timer = setTimeout(() => loadData(), 300);
     return () => clearTimeout(timer);
   }, [searchText, filterRol, currentPage, pageSize]);
+
+  // Cuando el padre impone una búsqueda (ej: al saltar desde "Solicitantes"),
+  // la aplicamos en el buscador de usuarios.
+  useEffect(() => {
+    if (searchOverride) {
+      setSearchText(searchOverride);
+      setCurrentPage(1);
+    }
+  }, [searchOverride]);
 
   const handleCrear = async (values: CrearUsuarioPayload) => {
     setSaving(true);

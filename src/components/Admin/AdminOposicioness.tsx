@@ -42,6 +42,7 @@ import {
   DeleteOutlined,
   WarningOutlined,
   SwapOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import type { InputRef } from 'antd';
@@ -156,6 +157,33 @@ const AdminOposiciones: React.FC = () => {
   const [deletingCatalog, setDeletingCatalog] = useState(false);
   const [reassignModal, setReassignModal] = useState<{ tipo: CatalogoTipo; id: number; nombre: string; enUso: number; oposiciones: { id: number; titulo: string }[] } | null>(null);
   const [reassignTo, setReassignTo] = useState<number | undefined>(undefined);
+
+  // Ver solicitantes del temario
+  const [solicitantesModal, setSolicitantesModal] = useState<{ titulo: string } | null>(null);
+  const [solicitantes, setSolicitantes] = useState<{ num: number; email: string }[]>([]);
+  const [solicitantesLoading, setSolicitantesLoading] = useState(false);
+  // Búsqueda que se le impone a la tab de Usuarios al saltar desde un solicitante
+  const [usuariosSearch, setUsuariosSearch] = useState<string>('');
+
+  const verUsuarioEnGestion = (email: string) => {
+    setUsuariosSearch(email);
+    setSolicitantesModal(null);
+    handleTabChange('usuarios');
+  };
+
+  const openSolicitantes = async (record: OposicionAdmin) => {
+    setSolicitantesModal({ titulo: record.titulo });
+    setSolicitantes([]);
+    setSolicitantesLoading(true);
+    try {
+      const data = await oposicionesService.getSolicitantes(record.id);
+      setSolicitantes(data);
+    } catch {
+      notify.error('Error al cargar los solicitantes');
+    } finally {
+      setSolicitantesLoading(false);
+    }
+  };
 
   const openRecursoView = async (record: OposicionAdmin) => {
     setRecursoViewTitulo(record.titulo);
@@ -1109,6 +1137,16 @@ const AdminOposiciones: React.FC = () => {
               />
             </Tooltip>
 
+            <Tooltip title="Ver estudiantes que solicitaron el temario">
+              <Button
+                type="text"
+                icon={<SolutionOutlined />}
+                onClick={() => openSolicitantes(record)}
+                disabled={editingKey !== null}
+                className="edit-btn"
+              />
+            </Tooltip>
+
             {isAdmin && (
               <Tooltip title="Eliminar oposición">
                 <Button
@@ -1909,6 +1947,63 @@ const AdminOposiciones: React.FC = () => {
                   </ConfigProvider>
                 </Modal>
 
+                {/* Modal ver solicitantes del temario */}
+                <Modal
+                  title={`Solicitantes del temario — ${solicitantesModal?.titulo ?? ''}`}
+                  open={!!solicitantesModal}
+                  onCancel={() => setSolicitantesModal(null)}
+                  footer={null}
+                  width={560}
+                  className="admin-modal"
+                >
+                  <ConfigProvider
+                    theme={{
+                      algorithm: theme.defaultAlgorithm,
+                      token: { colorBgContainer: '#ffffff', colorText: '#1a2332', colorTextSecondary: '#5a6678', colorBorder: '#d1d5db', colorPrimary: '#23C27B' },
+                    }}
+                  >
+                    {solicitantesLoading ? (
+                      <div style={{ textAlign: 'center', padding: 32 }}><Spin /></div>
+                    ) : solicitantes.length === 0 ? (
+                      <Text style={{ color: '#64748b' }}>Todavía no hay estudiantes que hayan solicitado este temario.</Text>
+                    ) : (
+                      <>
+                        <Text style={{ color: '#4a5568', display: 'block', marginBottom: 10 }}>
+                          {solicitantes.length} estudiante(s) solicitaron el temario:
+                        </Text>
+                        <Table
+                          dataSource={solicitantes}
+                          rowKey="num"
+                          pagination={false}
+                          size="small"
+                          scroll={{ y: 320 }}
+                          columns={[
+                            { title: '#', dataIndex: 'num', key: 'num', width: 50 },
+                            { title: 'Email', dataIndex: 'email', key: 'email', ellipsis: true },
+                            ...(isAdmin
+                              ? [{
+                                  title: '',
+                                  key: 'ver',
+                                  width: 140,
+                                  render: (_: any, row: { email: string }) => (
+                                    <Button
+                                      type="link"
+                                      size="small"
+                                      icon={<UserOutlined />}
+                                      onClick={() => verUsuarioEnGestion(row.email)}
+                                    >
+                                      Ver usuario
+                                    </Button>
+                                  ),
+                                }]
+                              : []),
+                          ]}
+                        />
+                      </>
+                    )}
+                  </ConfigProvider>
+                </Modal>
+
               </>
             ),
           },
@@ -1917,7 +2012,7 @@ const AdminOposiciones: React.FC = () => {
                 {
                   key: 'usuarios',
                   label: 'Gestión de Usuarios',
-                  children: <AdminUsuarios onGestionarOposicion={handleGestionarOposicion} />,
+                  children: <AdminUsuarios onGestionarOposicion={handleGestionarOposicion} searchOverride={usuariosSearch} />,
                 },
                 {
                   key: 'historico',
