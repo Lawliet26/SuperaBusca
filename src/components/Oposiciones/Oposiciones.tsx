@@ -17,7 +17,10 @@ const { Option } = Select;
 const TIPOS_OPOSICION = ['Convocatoria', 'Oferta'];
 
 const Oposiciones: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isProfesor, isAdmin } = useAuth();
+  // Los estudiantes ya vienen filtrados por su línea (company_organization) vía JWT,
+  // así que a ellos les ocultamos el filtro de Línea (sería redundante/confuso).
+  const esEstudiante = !isProfesor && !isAdmin;
   const [oposiciones, setOposiciones] = useState<Oposicion[]>([]);
   const [loading, setLoading] = useState(true);
   const [provincias, setProvincias] = useState<Provincia[]>([]);
@@ -265,19 +268,21 @@ const Oposiciones: React.FC = () => {
             </Select>
           </div>
 
-          <div style={{ flex: '1 1 140px', minWidth: 130 }}>
-            <Select
-              placeholder="Línea"
-              value={companiaFilter || undefined}
-              onChange={(value) => { setCompaniaFilter(value); handleFilterChange(); }}
-              allowClear size="large"
-              style={{ width: '100%' }}
-            >
-              <Option value="Supera">Supera</Option>
-              <Option value="Patrio">Patrio</Option>
-              <Option value="Otro">Otro</Option>
-            </Select>
-          </div>
+          {!esEstudiante && (
+            <div style={{ flex: '1 1 140px', minWidth: 130 }}>
+              <Select
+                placeholder="Línea"
+                value={companiaFilter || undefined}
+                onChange={(value) => { setCompaniaFilter(value); handleFilterChange(); }}
+                allowClear size="large"
+                style={{ width: '100%' }}
+              >
+                <Option value="Supera">Supera</Option>
+                <Option value="Patrio">Patrio</Option>
+                <Option value="Otro">Otro</Option>
+              </Select>
+            </div>
+          )}
 
           {hasActiveFilters && (
             <Button

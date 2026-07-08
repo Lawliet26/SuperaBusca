@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FileText } from 'lucide-react';
-// Calendario oculto temporalmente
-// import { CalendarioConvocatorias } from './CalendarioConvocatorias';
+// Calendario con eventos: se muestra solo a los estudiantes de la línea "patrio".
+import { CalendarioConvocatorias } from './CalendarioConvocatorias';
 import { notify } from '@/utils/notify';
 import { temariosService } from '@/services/temariosService';
 import { OposicionData, Oposicion } from '@/types';
 import { SkeletonList } from '../shared/Skeletons';
 import { OposicionDetailModal } from '../Oposiciones/OposicionDetailModal';
+import { useAuth } from '@/context/AuthContext';
 import './Temarios.css';
 
 // Convierte la convocatoria (enriquecida desde n8n) al shape que espera el modal de detalle
@@ -28,6 +29,9 @@ const toOposicion = (o: OposicionData): Oposicion => ({
 });
 
 export const Temarios = () => {
+  const { user } = useAuth();
+  // "patrio" → vista de calendario con eventos. "supera" (u otros) → tarjetas.
+  const esPatrio = (user?.company_organization || '').toLowerCase() === 'patrio';
   const [oposiciones, setOposiciones] = useState<OposicionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [seleccionada, setSeleccionada] = useState<OposicionData | null>(null);
@@ -82,6 +86,14 @@ export const Temarios = () => {
         {!Array.isArray(oposiciones) || oposiciones.length === 0 ? (
           <div className="temarios-empty">
             <p className="temarios-empty-text">No hay convocatorias disponibles</p>
+          </div>
+        ) : esPatrio ? (
+          <div className="temarios-calendario">
+            <CalendarioConvocatorias
+              convocatorias={oposiciones
+                .filter((o) => o.id_oposicion != null)
+                .map((o) => ({ id_oposicion: o.id_oposicion, titulo_oposicion: o.titulo_oposicion }))}
+            />
           </div>
         ) : (
           <div className="convocatorias-grid">

@@ -26,6 +26,8 @@ export interface User {
   username: string;
   nombre: string;
   rol: 'PROFESOR' | 'ESTUDIANTE' | 'ADMINISTRADOR';
+  // Línea a la que pertenece el estudiante (viene de SuperaBusca: "supera" / "patrio").
+  company_organization?: string;
 }
 
 export interface Recurso {

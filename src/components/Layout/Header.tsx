@@ -44,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
     { key: 'revisiones', label: 'Revisiones', icon: <FileSearchOutlined />, visible: false },
     { key: 'correcciones', label: 'Correcciones', icon: <EditOutlined />, visible: false },
     { key: 'revision-manual', label: 'Revisión Manual', icon: <AuditOutlined />, visible: isProfesor || isAdmin },
-    { key: 'misconvocatorias', label: 'Mis Convocatorias', icon: <SnippetsOutlined />, visible: true },
+    { key: 'misconvocatorias', label: 'Mis Convocatorias', icon: <SnippetsOutlined />, visible: !isProfesor },
     { key: 'admin', label: 'Administrador', icon: <EditOutlined />, visible: isAdmin || isProfesor },
   ].filter(item => item.visible);
 
