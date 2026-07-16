@@ -48,8 +48,17 @@ const AdminActividades: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
 
-  // Opciones de oposiciones para vincular (opcional)
+  // Selector de oposiciones: el endpoint es paginado y busca en el servidor,
+  // así que acá paginamos por scroll y delegamos la búsqueda al backend.
+  const OPO_PAGE = 20;
   const [opoOptions, setOpoOptions] = useState<{ value: number; label: string }[]>([]);
+  const [opoSearch, setOpoSearch] = useState('');
+  const [opoLoading, setOpoLoading] = useState(false);
+  const [opoOffset, setOpoOffset] = useState(0);
+  const [opoTotal, setOpoTotal] = useState(0);
+  // Oposición ya seleccionada (al editar): la fijamos para que no se pierda su
+  // etiqueta cuando el usuario busca o pagina y deja de estar en la lista.
+  const [selectedOpo, setSelectedOpo] = useState<{ value: number; label: string } | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -70,20 +79,56 @@ const AdminActividades: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadData(); }, [filtroTipo, dateRange]);
 
-  // Cargamos un set de oposiciones para el selector opcional del modal
+  // Trae una página de oposiciones del servidor (con búsqueda). append=true => scroll infinito.
+  const fetchOposiciones = async (search: string, offset: number, append: boolean) => {
+    setOpoLoading(true);
+    try {
+      const res = await oposicionesService.getOposicionesAdmin({
+        search: search || undefined,
+        limit: OPO_PAGE,
+        offset,
+      });
+      const nuevas = (res.data || []).map((o: any) => ({ value: o.id, label: `${o.titulo} (#${o.id})` }));
+      setOpoOptions((prev) => {
+        const base = append ? prev : [];
+        const map = new Map(base.map((o) => [o.value, o]));
+        nuevas.forEach((o) => map.set(o.value, o));
+        return Array.from(map.values());
+      });
+      setOpoTotal(res.total || 0);
+      setOpoOffset(offset + nuevas.length);
+    } catch {
+      /* no bloqueante */
+    } finally {
+      setOpoLoading(false);
+    }
+  };
+
+  // Primera página + búsqueda en servidor (con debounce para no spamear el endpoint)
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await oposicionesService.getOposicionesAdmin({ limit: 100, offset: 0 });
-        setOpoOptions((res.data || []).map((o: any) => ({ value: o.id, label: `${o.titulo} (#${o.id})` })));
-      } catch {
-        /* no bloqueante */
-      }
-    })();
-  }, []);
+    const t = setTimeout(() => { fetchOposiciones(opoSearch, 0, false); }, 350);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opoSearch]);
+
+  // Scroll infinito: al llegar al fondo del dropdown, pedimos la página siguiente
+  const handleOpoScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const alFinal = el.scrollTop + el.offsetHeight >= el.scrollHeight - 24;
+    if (alFinal && !opoLoading && opoOptions.length < opoTotal) {
+      fetchOposiciones(opoSearch, opoOffset, true);
+    }
+  };
+
+  // La opción seleccionada siempre presente, aunque no esté en la página actual
+  const opcionesOposicion =
+    selectedOpo && !opoOptions.some((o) => o.value === selectedOpo.value)
+      ? [selectedOpo, ...opoOptions]
+      : opoOptions;
 
   const openCreate = () => {
     setEditing(null);
+    setSelectedOpo(null);
     form.resetFields();
     form.setFieldsValue({ todo_el_dia: false });
     setModalOpen(true);
@@ -102,10 +147,13 @@ const AdminActividades: React.FC = () => {
       color: a.color ?? undefined,
       oposicion_id: a.oposicion_id ?? undefined,
     });
-    // Si la actividad tiene una oposición que no está en las opciones cargadas, la agregamos
-    if (a.oposicion_id && a.oposicion_nombre && !opoOptions.some(o => o.value === a.oposicion_id)) {
-      setOpoOptions(prev => [{ value: a.oposicion_id as number, label: a.oposicion_nombre as string }, ...prev]);
-    }
+    // Fijamos la oposición de la actividad para que su etiqueta siempre se vea,
+    // aunque no venga en la página actual del selector.
+    setSelectedOpo(
+      a.oposicion_id
+        ? { value: a.oposicion_id, label: a.oposicion_nombre ?? `Oposición #${a.oposicion_id}` }
+        : null
+    );
     setModalOpen(true);
   };
 
@@ -315,8 +363,9 @@ const AdminActividades: React.FC = () => {
           cancelText="Cancelar"
           confirmLoading={saving}
           width={560}
+          className="admin-modal"
         >
-          <Form form={form} layout="vertical" onFinish={handleSave} style={{ marginTop: 8 }}>
+          <Form form={form} layout="vertical" onFinish={handleSave} style={{ marginTop: 8 }} className="modal-form-light">
             <Form.Item name="titulo" label="Título">
               <Input placeholder="Ej: Reunión de coordinación" maxLength={200} />
             </Form.Item>
@@ -370,9 +419,14 @@ const AdminActividades: React.FC = () => {
             >
               <Select
                 showSearch
-                optionFilterProp="label"
-                placeholder="Vincular a una oposición"
-                options={opoOptions}
+                filterOption={false}
+                onSearch={setOpoSearch}
+                onPopupScroll={handleOpoScroll}
+                loading={opoLoading}
+                notFoundContent={opoLoading ? <Spin size="small" /> : 'Sin resultados'}
+                placeholder="Buscar y vincular una oposición"
+                options={opcionesOposicion}
+                onSelect={(val: any, opt: any) => setSelectedOpo({ value: val, label: opt?.label })}
               />
             </Form.Item>
           </Form>
