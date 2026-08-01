@@ -457,7 +457,7 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion, sea
               name="password"
               label="Nueva contraseña"
               rules={[
-                { required: true, message: 'Ingresá la nueva contraseña' },
+                { required: true, message: 'Ingresa la nueva contraseña' },
                 { min: 8, message: 'Mínimo 8 caracteres' },
               ]}
             >

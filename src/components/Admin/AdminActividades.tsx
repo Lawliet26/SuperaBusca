@@ -343,7 +343,7 @@ const AdminActividades: React.FC = () => {
             pagination={{ pageSize: 20, showTotal: (t, r) => <Text type="secondary">{r[0]}-{r[1]} de {t}</Text> }}
             size="middle"
             className="admin-table"
-            locale={{ emptyText: 'No hay actividades. Creá la primera con "Nueva actividad".' }}
+            locale={{ emptyText: 'No hay actividades. Crea la primera con "Nueva actividad".' }}
           />
         )}
       </Card>

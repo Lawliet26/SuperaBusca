@@ -167,7 +167,7 @@ const RevisionManual: React.FC = () => {
 
   const handleSubirTemario = async () => {
     if (!selectedItem || subirFile.length === 0) {
-      notify.warning('Seleccioná un archivo PDF');
+      notify.warning('Selecciona un archivo PDF');
       return;
     }
     const file = subirFile[0].originFileObj as File;
@@ -255,7 +255,7 @@ const RevisionManual: React.FC = () => {
     try {
       if (recursoType === 'relacion') {
         if (fileList.length === 0) {
-          notify.error('Por favor seleccioná un archivo PDF');
+          notify.error('Por favor selecciona un archivo PDF');
           setUploadingRecurso(false);
           return;
         }
@@ -277,7 +277,7 @@ const RevisionManual: React.FC = () => {
         formData.append('titulo', values.titulo);
         if (recursoType === 'file') {
           if (fileList.length === 0) {
-            notify.error('Por favor seleccioná un archivo');
+            notify.error('Por favor selecciona un archivo');
             setUploadingRecurso(false);
             return;
           }
@@ -498,7 +498,7 @@ const RevisionManual: React.FC = () => {
       >
         <div className="modal-content">
           <p style={{ color: '#64748b', marginBottom: 16 }}>
-            Seleccioná el archivo PDF de la relación de temario.
+            Selecciona el archivo PDF de la relación de temario.
           </p>
           <Upload
             beforeUpload={() => false}
@@ -596,7 +596,7 @@ const RevisionManual: React.FC = () => {
             <Form.Item
               name="titulo"
               label="Título del Recurso"
-              rules={[{ required: true, message: 'Ingresá el título del recurso' }]}
+              rules={[{ required: true, message: 'Ingresa el título del recurso' }]}
             >
               <Input placeholder="Ej: Temario oficial 2024" />
             </Form.Item>
@@ -634,8 +634,8 @@ const RevisionManual: React.FC = () => {
               name="url"
               label="URL del Recurso"
               rules={[
-                { required: true, message: 'Ingresá la URL' },
-                { type: 'url', message: 'Ingresá una URL válida' }
+                { required: true, message: 'Ingresa la URL' },
+                { type: 'url', message: 'Ingresa una URL válida' }
               ]}
             >
               <Input placeholder="https://ejemplo.com/recurso.pdf" />
@@ -678,7 +678,7 @@ const RevisionManual: React.FC = () => {
           </span>
         }
       >
-        <p>La relación de temario no se puede eliminar directamente. Podés reemplazarla subiendo un nuevo archivo PDF.</p>
+        <p>La relación de temario no se puede eliminar directamente. Puedes reemplazarla subiendo un nuevo archivo PDF.</p>
       </Modal>
 
       {/* Modal Reasignar profesor (solo admin) */}
@@ -708,7 +708,7 @@ const RevisionManual: React.FC = () => {
             style={{ width: '100%' }}
             showSearch
             optionFilterProp="label"
-            placeholder="Elegí el profesor"
+            placeholder="Elige el profesor"
             value={reasignarTo}
             onChange={(v) => setReasignarTo(v)}
             options={profesores.map((p) => ({ value: p.id, label: `${p.nombre} — ${p.especialidad}` }))}

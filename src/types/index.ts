@@ -28,6 +28,8 @@ export interface User {
   rol: 'PROFESOR' | 'ESTUDIANTE' | 'ADMINISTRADOR';
   // Línea a la que pertenece el estudiante (viene de SuperaBusca: "supera" / "patrio").
   company_organization?: string;
+  // DNI del estudiante (viene de SuperaBusca). Si falta, no puede pedir temarios.
+  dni?: string | null;
 }
 
 export interface Recurso {

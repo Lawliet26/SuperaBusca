@@ -16,12 +16,15 @@ import {
   DeleteOutlined,
 } from '@ant-design/icons';
 import { Oposicion } from '../../types';
+import { notify } from '@/utils/notify';
 import { OposicionDetailModal } from './OposicionDetailModal';
 
 interface OposicionCardProps {
   oposicion: Oposicion;
   index: number;
   onSolicitarTemario: (id: string, file: File) => Promise<void>;
+  /** Estudiante sin DNI: no puede solicitar temario (botón bloqueado). */
+  bloqueadoPorDni?: boolean;
 }
 
 const estadoConfig: Record<string, { color: string; bg: string; label: string; pulse: boolean }> = {
@@ -35,7 +38,7 @@ const tipoConfig: Record<string, { color: string; bg: string }> = {
   Oferta:       { color: '#94a3b8', bg: 'rgba(148,163,184,0.10)' },
 };
 
-const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolicitarTemario }) => {
+const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolicitarTemario, bloqueadoPorDni = false }) => {
   const [hovered, setHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -54,6 +57,10 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
 
   const handleButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (bloqueadoPorDni) {
+      notify.warning('Necesitas cargar tu DNI para solicitar el temario. Comunícate con el equipo de tu línea.');
+      return;
+    }
     setPdfFile(null);
     setFileList([]);
     setIsUploadModalOpen(true);
@@ -180,7 +187,7 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
 
         {/* CTA */}
         <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Tooltip title={isOferta ? 'Disponible cuando se publique la convocatoria' : ''}>
+          <Tooltip title={isOferta ? 'Disponible cuando se publique la convocatoria' : bloqueadoPorDni ? 'Carga tu DNI para poder solicitar el temario' : ''}>
             <button
               onClick={handleButtonClick}
               disabled={isOferta}
@@ -190,13 +197,13 @@ const OposicionCard: React.FC<OposicionCardProps> = ({ oposicion, index, onSolic
                 color: hasTemario ? '#23C27B' : '#D0E4F7',
                 border: hasTemario ? '1px solid rgba(35,194,123,0.6)' : '1px solid rgba(35,194,123,0.35)',
                 borderRadius: 8, padding: '7px 14px',
-                fontSize: 12, fontWeight: 600, cursor: isOferta ? 'not-allowed' : 'pointer',
-                opacity: isOferta ? 0.5 : 1,
+                fontSize: 12, fontWeight: 600, cursor: (isOferta || bloqueadoPorDni) ? 'not-allowed' : 'pointer',
+                opacity: isOferta ? 0.5 : bloqueadoPorDni ? 0.6 : 1,
                 transition: 'color 0.2s, border-color 0.2s',
                 whiteSpace: 'nowrap',
               }}
             >
-              {isOferta ? <LockOutlined /> : hasTemario ? <CheckCircleOutlined style={{ color: '#23C27B' }} /> : <BookOutlined />}
+              {isOferta || bloqueadoPorDni ? <LockOutlined /> : hasTemario ? <CheckCircleOutlined style={{ color: '#23C27B' }} /> : <BookOutlined />}
               {hasTemario ? 'Ver Convocatoria' : 'Solicitar Temario'}
             </button>
           </Tooltip>

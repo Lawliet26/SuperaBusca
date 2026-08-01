@@ -82,7 +82,7 @@ export const Temarios = () => {
             Revisa y evalúa los temarios de las convocatorias
           </motion.p>
         </div>
-        
+
         {!Array.isArray(oposiciones) || oposiciones.length === 0 ? (
           <div className="temarios-empty">
             <p className="temarios-empty-text">No hay convocatorias disponibles</p>

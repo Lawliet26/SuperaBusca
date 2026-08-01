@@ -9,6 +9,7 @@ import './Dashboard.css';
 import Temarios from '../Temarios/Temarios';
 import AdminOposiciones from '../Admin/AdminOposicioness';
 import { EventoHoyAlert } from '../shared/EventoHoyAlert';
+import { DniIncompleteGuard } from '../shared/DniIncompleteGuard';
 import isotipo from '../../assets/logos/isotipo-verde.png'
 
 const Dashboard: React.FC = () => {
@@ -65,6 +66,7 @@ const Dashboard: React.FC = () => {
       transition={{ duration: 0.5 }}
     >
       <Header currentPage={currentPage} onNavigate={setCurrentPage} />
+      <DniIncompleteGuard />
       <EventoHoyAlert onIrAConvocatorias={() => setCurrentPage('misconvocatorias')} />
       <div className="isotipo-container">
         <img src={isotipo} alt="isotipo" className='isotipo' />

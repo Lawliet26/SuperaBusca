@@ -1,17 +1,13 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { X, FileText, Image, Video, Headphones, ExternalLink, Download } from 'lucide-react';
-import { Modal, Spin } from 'antd';
+import { X, FileText, Image, Video, Headphones, ExternalLink, Download, Eye } from 'lucide-react';
+import { Modal, Spin, Button, Tooltip } from 'antd';
 import { notify } from '@/utils/notify';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './RecursosModal.css';
 import { recursosService } from '@/services/recursosService';
-
-interface Recurso {
-    titulo: string;
-    url: string;
-    mimetype: string;
-    tipo: 'link' | 'audio' | 'video' | 'documento' | 'image';
-}
+import { RecursoGet } from '@/types';
+import { useAuth } from '@/context/AuthContext';
+import { watermarkPdf, descargarBytesPdf, bytesToBlobUrl } from '@/utils/pdfWatermark';
 
 interface RecursosModalProps {
     isOpen: boolean;
@@ -26,8 +22,16 @@ export const RecursosModal = ({
     oposicionId,
     tituloOposicion
 }: RecursosModalProps) => {
-    const [recursos, setRecursos] = useState<Recurso[]>([]);
+    const { user } = useAuth();
+    const dni = user?.dni || null;
+    const sinDni = !dni;
+
+    const [recursos, setRecursos] = useState<RecursoGet[]>([]);
     const [loading, setLoading] = useState(false);
+    const [visorUrl, setVisorUrl] = useState<string | null>(null);
+    const [visorTitulo, setVisorTitulo] = useState('');
+    const [busyId, setBusyId] = useState<number | null>(null);
+    const cacheRef = useRef<Record<number, Uint8Array>>({});
 
     useEffect(() => {
         if (isOpen && oposicionId) {
@@ -39,7 +43,6 @@ export const RecursosModal = ({
         setLoading(true);
         try {
             const data = await recursosService.getRecursosByOposicion(oposicionId);
-
             setRecursos(data);
         } catch (error) {
             console.error('Error al cargar recursos:', error);
@@ -49,6 +52,47 @@ export const RecursosModal = ({
         }
     };
 
+    // Documento protegido = el backend le ocultó la URL de Drive al estudiante.
+    const esProtegido = (r: RecursoGet) => r.tipo === 'documento' && !r.url;
+
+    const asegurarWatermarked = async (recurso: RecursoGet): Promise<Uint8Array> => {
+        const id = recurso.id!;
+        if (cacheRef.current[id]) return cacheRef.current[id];
+        const raw = await recursosService.descargarRecursoBytes(id);
+        const wm = await watermarkPdf(raw, dni || '');
+        cacheRef.current[id] = wm;
+        return wm;
+    };
+
+    const verDocumento = async (recurso: RecursoGet) => {
+        setBusyId(recurso.id!);
+        try {
+            const wm = await asegurarWatermarked(recurso);
+            setVisorTitulo(recurso.titulo);
+            setVisorUrl(bytesToBlobUrl(wm));
+        } catch {
+            notify.error(sinDni ? 'Necesitas cargar tu DNI para ver este recurso' : 'No se pudo abrir el documento');
+        } finally {
+            setBusyId(null);
+        }
+    };
+
+    const descargarDocumento = async (recurso: RecursoGet) => {
+        setBusyId(recurso.id!);
+        try {
+            const wm = await asegurarWatermarked(recurso);
+            descargarBytesPdf(wm, recurso.titulo || 'recurso');
+        } catch {
+            notify.error(sinDni ? 'Necesitas cargar tu DNI para descargar' : 'No se pudo descargar el documento');
+        } finally {
+            setBusyId(null);
+        }
+    };
+
+    const cerrarVisor = () => {
+        if (visorUrl) URL.revokeObjectURL(visorUrl);
+        setVisorUrl(null);
+    };
 
     const getIconByType = (tipo: string) => {
         switch (tipo) {
@@ -101,11 +145,28 @@ export const RecursosModal = ({
         }
     };
 
-    const handleRecursoClick = (recurso: Recurso) => {
-        window.open(recurso.url, '_blank', 'noopener,noreferrer');
+    const handleRecursoClick = (recurso: RecursoGet) => {
+        if (esProtegido(recurso)) {
+            if (!sinDni) verDocumento(recurso);
+            return;
+        }
+        if (recurso.url) window.open(recurso.url, '_blank', 'noopener,noreferrer');
+    };
+
+    const iconBtn: React.CSSProperties = {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 34,
+        height: 34,
+        borderRadius: 8,
+        border: 'none',
+        background: 'transparent',
+        cursor: 'pointer',
     };
 
     return (
+        <>
         <Modal
             open={isOpen}
             onCancel={onClose}
@@ -122,20 +183,24 @@ export const RecursosModal = ({
 
                 {loading ? (
                     <div className="loading-container">
-                        <Spin size="large" tip="Cargando correcciones..." />
+                        <Spin size="large" tip="Cargando recursos..." />
                     </div>
                 ) : (
                     <div className="recursos-grid">
                         <AnimatePresence>
-                            {recursos.map((recurso, index) => (
+                            {recursos.map((recurso, index) => {
+                                const protegido = esProtegido(recurso);
+                                const busy = busyId === recurso.id;
+                                return (
                                 <motion.div
-                                    key={index}
+                                    key={recurso.id ?? index}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
                                     transition={{ delay: index * 0.05 }}
                                     className={`recurso-card ${getColorByType(recurso.tipo)}`}
                                     onClick={() => handleRecursoClick(recurso)}
+                                    style={protegido && sinDni ? { cursor: 'not-allowed', opacity: 0.7 } : undefined}
                                 >
                                     <div className="recurso-icon-container">
                                         {getIconByType(recurso.tipo)}
@@ -148,11 +213,38 @@ export const RecursosModal = ({
                                         </span>
                                     </div>
 
-                                    <div className="recurso-action">
-                                        <Download className="recurso-action-icon" />
+                                    <div className="recurso-action" onClick={(e) => e.stopPropagation()}>
+                                        {protegido ? (
+                                            <>
+                                                {busy && <Spin size="small" />}
+                                                <Tooltip title={sinDni ? 'Carga tu DNI para ver' : 'Ver'}>
+                                                    <button
+                                                        type="button"
+                                                        disabled={sinDni || busy}
+                                                        onClick={() => verDocumento(recurso)}
+                                                        style={{ ...iconBtn, color: sinDni ? '#94a3b8' : '#059669', cursor: sinDni || busy ? 'not-allowed' : 'pointer' }}
+                                                    >
+                                                        <Eye size={18} />
+                                                    </button>
+                                                </Tooltip>
+                                                <Tooltip title={sinDni ? 'Carga tu DNI para descargar' : 'Descargar con marca de agua'}>
+                                                    <button
+                                                        type="button"
+                                                        disabled={sinDni || busy}
+                                                        onClick={() => descargarDocumento(recurso)}
+                                                        style={{ ...iconBtn, color: sinDni ? '#94a3b8' : '#059669', cursor: sinDni || busy ? 'not-allowed' : 'pointer' }}
+                                                    >
+                                                        <Download size={18} />
+                                                    </button>
+                                                </Tooltip>
+                                            </>
+                                        ) : (
+                                            <Download className="recurso-action-icon" />
+                                        )}
                                     </div>
                                 </motion.div>
-                            ))}
+                                );
+                            })}
                         </AnimatePresence>
 
                         {!loading && recursos.length === 0 && (
@@ -165,5 +257,22 @@ export const RecursosModal = ({
                 )}
             </div>
         </Modal>
+
+        <Modal
+            open={!!visorUrl}
+            onCancel={cerrarVisor}
+            footer={null}
+            width="82vw"
+            title={visorTitulo}
+            closeIcon={<X />}
+            styles={{ body: { padding: 0 } }}
+        >
+            <div style={{ height: '78vh', background: '#525659' }}>
+                {visorUrl && (
+                    <iframe src={visorUrl} title={visorTitulo} style={{ width: '100%', height: '100%', border: 'none' }} />
+                )}
+            </div>
+        </Modal>
+        </>
     );
 };

@@ -8,28 +8,13 @@ import {
   LinkOutlined,
   ClockCircleOutlined
 } from '@ant-design/icons';
-import { X, FileText, Image as ImageIcon, Video, Headphones, ExternalLink } from 'lucide-react';
+import { X } from 'lucide-react';
 import dayjs from 'dayjs';
 import { Oposicion, RecursoGet } from '@/types';
 import { actividadesService, Actividad } from '@/services/actividadesService';
 import { recursosService } from '@/services/recursosService';
+import { RecursoDescargable } from '../shared/RecursoDescargable';
 import './OposicionDetailModal.css';
-
-const ICONO_RECURSO: Record<string, JSX.Element> = {
-  documento: <FileText size={18} />,
-  image: <ImageIcon size={18} />,
-  video: <Video size={18} />,
-  audio: <Headphones size={18} />,
-  link: <ExternalLink size={18} />,
-};
-
-const LABEL_RECURSO: Record<string, string> = {
-  documento: 'Documento',
-  image: 'Imagen',
-  video: 'Video',
-  audio: 'Audio',
-  link: 'Enlace',
-};
 
 const TIPO_ACT: Record<string, { label: string; color: string }> = {
   reunion: { label: 'Reunión', color: 'blue' },
@@ -279,38 +264,9 @@ export const OposicionDetailModal = ({
               {loadingRec ? (
                 <div style={{ textAlign: 'center', padding: 16 }}><Spin /></div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
                   {recursos.map((r, i) => (
-                    <a
-                      key={r.id ?? i}
-                      href={r.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        border: '1px solid #e5e7eb',
-                        borderLeft: '4px solid #23C27B',
-                        borderRadius: 10,
-                        padding: '12px 14px',
-                        background: '#fff',
-                        textDecoration: 'none',
-                        color: '#1a2332',
-                      }}
-                    >
-                      <span style={{ color: '#23C27B', display: 'flex' }}>
-                        {ICONO_RECURSO[r.tipo] || <FileText size={18} />}
-                      </span>
-                      <span style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                        <span style={{ fontWeight: 600, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {r.titulo}
-                        </span>
-                        <span style={{ color: '#64748b', fontSize: 12 }}>
-                          {LABEL_RECURSO[r.tipo] || 'Recurso'}
-                        </span>
-                      </span>
-                    </a>
+                    <RecursoDescargable key={r.id ?? i} recurso={r} />
                   ))}
                 </div>
               )}

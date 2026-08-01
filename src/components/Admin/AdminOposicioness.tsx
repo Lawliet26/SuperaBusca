@@ -544,7 +544,7 @@ const AdminOposiciones: React.FC = () => {
         setReassignModal({ tipo, id: item.id, nombre: item.nombre, enUso: res.en_uso, oposiciones: res.oposiciones || [] });
       }
     } catch {
-      notify.error('No se pudo eliminar (¿tenés permisos de administrador?)');
+      notify.error('No se pudo eliminar (¿tienes permisos de administrador?)');
     } finally {
       setDeletingCatalog(false);
     }
@@ -1810,7 +1810,7 @@ const AdminOposiciones: React.FC = () => {
                     La <strong>Relación de Temario</strong> es un recurso estructural del sistema. Eliminarlo directamente rompería el flujo de generación de temarios.
                   </p>
                   <p style={{ color: '#4a5568' }}>
-                    Para actualizarlo, debés <strong>reemplazarlo</strong> subiendo un nuevo archivo PDF. Hacé clic en <em>"Ir a reemplazar archivo"</em> para continuar.
+                    Para actualizarlo, debes <strong>reemplazarlo</strong> subiendo un nuevo archivo PDF. Haz clic en <em>"Ir a reemplazar archivo"</em> para continuar.
                   </p>
                 </Modal>
 
@@ -1932,7 +1932,7 @@ const AdminOposiciones: React.FC = () => {
                       </div>
                     )}
                     <p style={{ color: '#4a5568', marginBottom: 8 }}>
-                      Elegí con qué valor reemplazarla. Esas oposiciones pasarán a usar el nuevo valor y luego se eliminará
+                      Elige con qué valor reemplazarla. Esas oposiciones pasarán a usar el nuevo valor y luego se eliminará
                       {reassignModal ? ` "${reassignModal.nombre}"` : ''}:
                     </p>
                     <Select

@@ -19,6 +19,7 @@ interface LoginResponse {
     profesor_id: number | null;
     tipo_acceso: string;
     company_organization?: string;
+    dni?: string | null;
   };
 }
 
@@ -44,7 +45,8 @@ export const authService = {
           nombre: data.user.nombre,
           profesor_id: data.user.profesor_id ? data.user.profesor_id.toString() : undefined,
           rol: data.user.tipo_acceso as 'PROFESOR' | 'ESTUDIANTE' | 'ADMINISTRADOR',
-          company_organization: data.user.company_organization
+          company_organization: data.user.company_organization,
+          dni: data.user.dni ?? null
         };
 
         // Guardar datos del usuario en cookie (7 días, igual que el refresh token)

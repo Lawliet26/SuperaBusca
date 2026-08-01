@@ -42,6 +42,20 @@ export const recursosService = {
     }
   },
 
+  /**
+   * Descarga los BYTES crudos de un documento a través del proxy protegido del
+   * backend (/descargar-recurso). El front nunca ve la URL de Drive: solo manda
+   * el recurso_id y el backend resuelve, valida DNI y devuelve el PDF binario.
+   * Devuelve un ArrayBuffer listo para watermarkear con pdf-lib.
+   */
+  async descargarRecursoBytes(recursoId: number): Promise<ArrayBuffer> {
+    const response = await api.get('/descargar-recurso', {
+      params: { recurso_id: recursoId },
+      responseType: 'arraybuffer',
+    });
+    return response.data as ArrayBuffer;
+  },
+
   async getRecursosByOposicion(oposicionId: number): Promise<RecursoGet[]> {
     try {
       const response = await api.get<RecursosResponse[]>(
