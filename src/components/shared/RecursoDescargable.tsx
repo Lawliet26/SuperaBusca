@@ -55,19 +55,19 @@ const cardStyle: React.CSSProperties = {
  */
 export const RecursoDescargable = ({ recurso }: { recurso: RecursoGet }) => {
   const { user } = useAuth();
-  const dni = user?.dni || null;
+  // Marca de agua: DNI si existe; si no, el correo como identificación provisional.
+  const marca = user?.dni || user?.username || '';
   const [loading, setLoading] = useState(false);
   const [visorUrl, setVisorUrl] = useState<string | null>(null);
   const bytesRef = useRef<Uint8Array | null>(null);
 
   // Documento protegido = tipo documento SIN url (el backend la ocultó al estudiante).
   const esProtegido = recurso.tipo === 'documento' && !recurso.url;
-  const sinDni = !dni;
 
   const asegurarWatermarked = async (): Promise<Uint8Array> => {
     if (bytesRef.current) return bytesRef.current;
     const raw = await recursosService.descargarRecursoBytes(recurso.id!);
-    const wm = await watermarkPdf(raw, dni || '');
+    const wm = await watermarkPdf(raw, marca);
     bytesRef.current = wm;
     return wm;
   };
@@ -78,7 +78,7 @@ export const RecursoDescargable = ({ recurso }: { recurso: RecursoGet }) => {
       const wm = await asegurarWatermarked();
       setVisorUrl(bytesToBlobUrl(wm));
     } catch {
-      notify.error(sinDni ? 'Necesitas cargar tu DNI para ver este recurso' : 'No se pudo abrir el documento');
+      notify.error('No se pudo abrir el documento');
     } finally {
       setLoading(false);
     }
@@ -90,7 +90,7 @@ export const RecursoDescargable = ({ recurso }: { recurso: RecursoGet }) => {
       const wm = await asegurarWatermarked();
       descargarBytesPdf(wm, recurso.titulo || 'recurso');
     } catch {
-      notify.error(sinDni ? 'Necesitas cargar tu DNI para descargar' : 'No se pudo descargar el documento');
+      notify.error('No se pudo descargar el documento');
     } finally {
       setLoading(false);
     }
@@ -129,22 +129,22 @@ export const RecursoDescargable = ({ recurso }: { recurso: RecursoGet }) => {
         </span>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           {loading && <Spin size="small" />}
-          <Tooltip title={sinDni ? 'Carga tu DNI para ver' : 'Ver'}>
+          <Tooltip title="Ver">
             <button
               type="button"
-              disabled={sinDni || loading}
+              disabled={loading}
               onClick={handleVer}
-              style={btnStyle(sinDni || loading)}
+              style={btnStyle(loading)}
             >
               <Eye size={16} />
             </button>
           </Tooltip>
-          <Tooltip title={sinDni ? 'Carga tu DNI para descargar' : 'Descargar con marca de agua'}>
+          <Tooltip title="Descargar con marca de agua">
             <button
               type="button"
-              disabled={sinDni || loading}
+              disabled={loading}
               onClick={handleDescargar}
-              style={btnStyle(sinDni || loading)}
+              style={btnStyle(loading)}
             >
               <Download size={16} />
             </button>

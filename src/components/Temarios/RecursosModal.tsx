@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, FileText, Image, Video, Headphones, ExternalLink, Download, Eye } from 'lucide-react';
-import { Modal, Spin, Button, Tooltip } from 'antd';
+import { Modal, Spin, Tooltip } from 'antd';
 import { notify } from '@/utils/notify';
 import { useEffect, useRef, useState } from 'react';
 import './RecursosModal.css';
@@ -23,8 +23,8 @@ export const RecursosModal = ({
     tituloOposicion
 }: RecursosModalProps) => {
     const { user } = useAuth();
-    const dni = user?.dni || null;
-    const sinDni = !dni;
+    // Marca de agua: DNI si existe; si no, el correo como identificación provisional.
+    const marca = user?.dni || user?.username || '';
 
     const [recursos, setRecursos] = useState<RecursoGet[]>([]);
     const [loading, setLoading] = useState(false);
@@ -59,7 +59,7 @@ export const RecursosModal = ({
         const id = recurso.id!;
         if (cacheRef.current[id]) return cacheRef.current[id];
         const raw = await recursosService.descargarRecursoBytes(id);
-        const wm = await watermarkPdf(raw, dni || '');
+        const wm = await watermarkPdf(raw, marca);
         cacheRef.current[id] = wm;
         return wm;
     };
@@ -71,7 +71,7 @@ export const RecursosModal = ({
             setVisorTitulo(recurso.titulo);
             setVisorUrl(bytesToBlobUrl(wm));
         } catch {
-            notify.error(sinDni ? 'Necesitas cargar tu DNI para ver este recurso' : 'No se pudo abrir el documento');
+            notify.error('No se pudo abrir el documento');
         } finally {
             setBusyId(null);
         }
@@ -83,7 +83,7 @@ export const RecursosModal = ({
             const wm = await asegurarWatermarked(recurso);
             descargarBytesPdf(wm, recurso.titulo || 'recurso');
         } catch {
-            notify.error(sinDni ? 'Necesitas cargar tu DNI para descargar' : 'No se pudo descargar el documento');
+            notify.error('No se pudo descargar el documento');
         } finally {
             setBusyId(null);
         }
@@ -147,7 +147,7 @@ export const RecursosModal = ({
 
     const handleRecursoClick = (recurso: RecursoGet) => {
         if (esProtegido(recurso)) {
-            if (!sinDni) verDocumento(recurso);
+            verDocumento(recurso);
             return;
         }
         if (recurso.url) window.open(recurso.url, '_blank', 'noopener,noreferrer');
@@ -200,7 +200,6 @@ export const RecursosModal = ({
                                     transition={{ delay: index * 0.05 }}
                                     className={`recurso-card ${getColorByType(recurso.tipo)}`}
                                     onClick={() => handleRecursoClick(recurso)}
-                                    style={protegido && sinDni ? { cursor: 'not-allowed', opacity: 0.7 } : undefined}
                                 >
                                     <div className="recurso-icon-container">
                                         {getIconByType(recurso.tipo)}
@@ -217,22 +216,22 @@ export const RecursosModal = ({
                                         {protegido ? (
                                             <>
                                                 {busy && <Spin size="small" />}
-                                                <Tooltip title={sinDni ? 'Carga tu DNI para ver' : 'Ver'}>
+                                                <Tooltip title="Ver">
                                                     <button
                                                         type="button"
-                                                        disabled={sinDni || busy}
+                                                        disabled={busy}
                                                         onClick={() => verDocumento(recurso)}
-                                                        style={{ ...iconBtn, color: sinDni ? '#94a3b8' : '#059669', cursor: sinDni || busy ? 'not-allowed' : 'pointer' }}
+                                                        style={{ ...iconBtn, color: '#059669', cursor: busy ? 'not-allowed' : 'pointer' }}
                                                     >
                                                         <Eye size={18} />
                                                     </button>
                                                 </Tooltip>
-                                                <Tooltip title={sinDni ? 'Carga tu DNI para descargar' : 'Descargar con marca de agua'}>
+                                                <Tooltip title="Descargar con marca de agua">
                                                     <button
                                                         type="button"
-                                                        disabled={sinDni || busy}
+                                                        disabled={busy}
                                                         onClick={() => descargarDocumento(recurso)}
-                                                        style={{ ...iconBtn, color: sinDni ? '#94a3b8' : '#059669', cursor: sinDni || busy ? 'not-allowed' : 'pointer' }}
+                                                        style={{ ...iconBtn, color: '#059669', cursor: busy ? 'not-allowed' : 'pointer' }}
                                                     >
                                                         <Download size={18} />
                                                     </button>

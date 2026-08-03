@@ -129,12 +129,6 @@ const Oposiciones: React.FC = () => {
   };
 
   const handleSolicitarTemario = async (id: string, file: File) => {
-    // Los estudiantes (no profesor, no admin) sin DNI cargado no pueden solicitar temarios.
-    const esEstudiante = !isProfesor && !isAdmin;
-    if (esEstudiante && !user?.dni) {
-      notify.warning('Necesitas cargar tu DNI para solicitar temarios. Comunícate con el equipo de tu línea.');
-      return;
-    }
     try {
       await oposicionesService.compararTemario(
         parseInt(user?.id || '0'),
@@ -342,7 +336,6 @@ const Oposiciones: React.FC = () => {
                     oposicion={oposicion}
                     index={index}
                     onSolicitarTemario={handleSolicitarTemario}
-                    bloqueadoPorDni={!isProfesor && !isAdmin && !user?.dni}
                   />
                 </Col>
               ))}
