@@ -176,7 +176,14 @@ export const CalendarioConvocatorias = ({ convocatorias }: Props) => {
                           {dayjs(e.fecha_inicio).format(e.todo_el_dia ? 'DD/MM/YYYY' : 'HH:mm')}
                           {e.fecha_fin ? ` - ${dayjs(e.fecha_fin).format(e.todo_el_dia ? 'DD/MM/YYYY' : 'HH:mm')}` : ''}
                         </span>
-                        {e.ubicacion && <span><EnvironmentOutlined /> {e.ubicacion}</span>}
+                        {e.ubicacion && (
+                          <span style={{ minWidth: 0, maxWidth: '100%', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                            <EnvironmentOutlined />{' '}
+                            {/^https?:\/\//i.test(e.ubicacion) ? (
+                              <a href={e.ubicacion} target="_blank" rel="noopener noreferrer" style={{ color: '#7cc4ff' }}>{e.ubicacion}</a>
+                            ) : e.ubicacion}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))

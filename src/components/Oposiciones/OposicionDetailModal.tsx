@@ -239,9 +239,20 @@ export const OposicionDetailModal = ({
                           </div>
                         )}
                         {a.ubicacion && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#475569', fontSize: 12, marginTop: 4 }}>
-                            <EnvironmentOutlined />
-                            <span>{a.ubicacion}</span>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, color: '#475569', fontSize: 12, marginTop: 4, minWidth: 0 }}>
+                            <EnvironmentOutlined style={{ flexShrink: 0, marginTop: 2 }} />
+                            {/^https?:\/\//i.test(a.ubicacion) ? (
+                              <a
+                                href={a.ubicacion}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: '#2563eb', minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                              >
+                                {a.ubicacion}
+                              </a>
+                            ) : (
+                              <span style={{ minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{a.ubicacion}</span>
+                            )}
                           </div>
                         )}
                       </div>
