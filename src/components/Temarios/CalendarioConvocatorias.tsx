@@ -47,8 +47,23 @@ export const CalendarioConvocatorias = ({ convocatorias }: Props) => {
       .then((data) => {
         if (cancel) return;
         setActividades(data);
-        const first = data.find((a) => a.fecha_inicio);
-        if (first?.fecha_inicio) setCursor(dayjs(first.fecha_inicio).startOf('month'));
+        // Posicionar el calendario de forma intuitiva:
+        // 1) mes actual si tiene actividades; 2) si no, la próxima actividad futura;
+        // 3) si no hay futuras, la más reciente; 4) si no hay ninguna, el mes actual.
+        const hoy = dayjs();
+        const fechas = data
+          .map((a) => a.fecha_inicio)
+          .filter((f): f is string => !!f)
+          .map((f) => dayjs(f));
+        let target = hoy.startOf('month');
+        if (fechas.length && !fechas.some((f) => f.isSame(hoy, 'month'))) {
+          const proximas = fechas
+            .filter((f) => f.isAfter(hoy, 'day'))
+            .sort((a, b) => a.valueOf() - b.valueOf());
+          const ref = proximas[0] || [...fechas].sort((a, b) => b.valueOf() - a.valueOf())[0];
+          target = ref.startOf('month');
+        }
+        setCursor(target);
         setSelectedDay(null);
       })
       .catch(() => { if (!cancel) setActividades([]); })
