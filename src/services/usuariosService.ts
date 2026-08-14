@@ -7,6 +7,20 @@ export interface UsuarioAdmin {
   rol: string;
   oposiciones: Record<string, string>;
   total_count?: string;
+  // true = creado en OpoRadar (se puede eliminar); false/undefined = vino de SuperaBusca.
+  pertenece_app?: boolean;
+  // Línea del alumno (supera / patrio).
+  company_organization?: string | null;
+  dni?: string | null;
+}
+
+export interface ActualizarUsuarioPayload {
+  usuario_id: number;
+  nombre?: string;
+  email?: string;
+  dni?: string;
+  company_organization?: string;
+  especialidad?: string; // solo profesor
 }
 
 interface UsuariosFilters {
@@ -26,6 +40,8 @@ export interface CrearUsuarioPayload {
   password: string;
   rol: RolCreable;
   especialidad?: string; // obligatorio solo para PROFESOR
+  company_organization?: string; // línea (supera/patrio)
+  dni?: string;
 }
 
 export const usuariosService = {
@@ -60,5 +76,26 @@ export const usuariosService = {
   // Cambiar la contraseña de un usuario (no aplica a administradores).
   async cambiarPassword(usuarioId: number, password: string): Promise<void> {
     await api.post('/cambiar-password', { usuario_id: usuarioId, password });
+  },
+
+  // Actualizar un usuario creado en OpoRadar (pertenece_app = true). El backend
+  // rechaza los que vienen de SuperaBusca.
+  async actualizarUsuario(
+    payload: ActualizarUsuarioPayload
+  ): Promise<{ success: boolean; message: string; usuario?: UsuarioAdmin }> {
+    const res = await api.put<{ success: boolean; message: string; usuario?: UsuarioAdmin }>(
+      '/actualizar-usuario',
+      payload
+    );
+    return res.data;
+  },
+
+  // Eliminar un usuario. El backend solo borra los creados en OpoRadar
+  // (pertenece_app = true) y hace la cascada (profesor, revisiones, solicitudes).
+  async eliminarUsuario(usuarioId: number): Promise<{ success: boolean; message: string }> {
+    const res = await api.delete<{ success: boolean; message: string }>('/eliminar-usuario', {
+      params: { usuario_id: usuarioId },
+    });
+    return res.data;
   },
 };

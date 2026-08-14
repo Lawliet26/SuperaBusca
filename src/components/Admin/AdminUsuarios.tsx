@@ -13,6 +13,8 @@ import {
   Form,
   ConfigProvider,
   theme,
+  Tooltip,
+  Popconfirm,
 } from 'antd';
 import {
   SearchOutlined,
@@ -21,9 +23,13 @@ import {
   FilterOutlined,
   UserAddOutlined,
   KeyOutlined,
+  LockOutlined,
+  DeleteOutlined,
+  InfoCircleOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import { usuariosService, UsuarioAdmin, CrearUsuarioPayload } from '../../services/usuariosService';
+import { usuariosService, UsuarioAdmin, CrearUsuarioPayload, ActualizarUsuarioPayload } from '../../services/usuariosService';
 import { notify } from '@/utils/notify';
 
 // Tema claro para los modales (la app va en oscuro y el Modal heredaría ilegible)
@@ -44,6 +50,8 @@ const { Option } = Select;
 const ROL_COLOR: Record<string, string> = {
   estudiante: 'blue',
   ESTUDIANTE: 'blue',
+  alumno: 'blue',
+  ALUMNO: 'blue',
   profesor: 'green',
   PROFESOR: 'green',
   administrador: 'red',
@@ -73,6 +81,9 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion, sea
   // Cambiar contraseña
   const [pwdTarget, setPwdTarget] = useState<UsuarioAdmin | null>(null);
   const [pwdForm] = Form.useForm();
+  // Editar usuario (solo los creados en OpoRadar)
+  const [editTarget, setEditTarget] = useState<UsuarioAdmin | null>(null);
+  const [editForm] = Form.useForm();
   const [saving, setSaving] = useState(false);
 
   const loadData = async () => {
@@ -110,12 +121,16 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion, sea
   const handleCrear = async (values: CrearUsuarioPayload) => {
     setSaving(true);
     try {
+      const esProfesor = values.rol === 'PROFESOR';
       await usuariosService.crearUsuario({
         email: values.email.trim(),
         nombre: values.nombre.trim(),
         password: values.password,
         rol: values.rol,
-        especialidad: values.rol === 'PROFESOR' ? values.especialidad?.trim() : undefined,
+        especialidad: esProfesor ? values.especialidad?.trim() : undefined,
+        // La línea del profesor es su especialidad; la del alumno, la elegida.
+        company_organization: esProfesor ? values.especialidad?.trim() : values.company_organization,
+        dni: values.dni?.trim(),
       });
       notify.success('Usuario creado correctamente');
       setCreateOpen(false);
@@ -140,6 +155,68 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion, sea
       notify.error(err?.response?.data?.message || 'No se pudo cambiar la contraseña');
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Abrir el modal de edición pre-cargado.
+  const abrirEdicion = (record: UsuarioAdmin) => {
+    const esProfesor = (record.rol || '').toUpperCase() === 'PROFESOR';
+    const lineaRaw = (record.company_organization || '').trim();
+    setEditTarget(record);
+    editForm.setFieldsValue({
+      nombre: record.nombre,
+      email: record.email,
+      dni: record.dni || '',
+      // Profesor: valores 'Supera'/'Patrio'; alumno: 'supera'/'patrio'.
+      linea: lineaRaw
+        ? (esProfesor
+            ? lineaRaw.charAt(0).toUpperCase() + lineaRaw.slice(1).toLowerCase()
+            : lineaRaw.toLowerCase())
+        : undefined,
+    });
+  };
+
+  const handleEditar = async (values: { nombre: string; email: string; dni?: string; linea?: string }) => {
+    if (!editTarget) return;
+    setSaving(true);
+    try {
+      const esProfesor = (editTarget.rol || '').toUpperCase() === 'PROFESOR';
+      const payload: ActualizarUsuarioPayload = {
+        usuario_id: editTarget.id,
+        nombre: values.nombre?.trim(),
+        email: values.email?.trim(),
+        dni: values.dni?.trim(),
+        company_organization: values.linea,
+        especialidad: esProfesor ? values.linea : undefined,
+      };
+      const res = await usuariosService.actualizarUsuario(payload);
+      if (res?.success) {
+        notify.success(`Usuario "${payload.nombre || editTarget.nombre}" actualizado`);
+        setEditTarget(null);
+        editForm.resetFields();
+        loadData();
+      } else {
+        notify.warning(res?.message || 'No se pudo actualizar el usuario');
+      }
+    } catch (err: any) {
+      notify.error(err?.response?.data?.message || 'No se pudo actualizar el usuario');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Eliminar usuario (solo los creados en OpoRadar: pertenece_app = true).
+  const handleEliminar = async (record: UsuarioAdmin) => {
+    try {
+      const res = await usuariosService.eliminarUsuario(record.id);
+      if (res?.success) {
+        notify.success(`Usuario "${record.nombre}" eliminado`);
+        loadData();
+      } else {
+        notify.warning(res?.message || 'No se pudo eliminar el usuario');
+      }
+    } catch (err: any) {
+      notify.error(err?.response?.data?.message || 'No se pudo eliminar el usuario');
     }
   };
 
@@ -198,20 +275,108 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion, sea
       },
     },
     {
-      title: 'Acciones',
-      key: 'acciones',
-      width: 160,
-      render: (_, record) => (
-        <Button
-          type="text"
-          icon={<KeyOutlined />}
-          size="small"
-          className="edit-btn"
-          onClick={() => { setPwdTarget(record); pwdForm.resetFields(); }}
-        >
-          Contraseña
-        </Button>
+      title: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          Acciones
+          <Tooltip
+            title={
+              <div style={{ maxWidth: 300, fontSize: 12.5, lineHeight: 1.5 }}>
+                <div style={{ marginBottom: 6 }}>
+                  <strong>Contraseña:</strong> profesores, administradores y usuarios creados en
+                  OpoRadar. Los alumnos que vienen de la plataforma externa se autentican allí, así
+                  que su contraseña no se gestiona en OpoRadar.
+                </div>
+                <div>
+                  <strong>Eliminar:</strong> solo usuarios creados en OpoRadar. Los importados desde
+                  la plataforma externa no se pueden borrar (se recrearían al iniciar sesión).
+                </div>
+              </div>
+            }
+          >
+            <InfoCircleOutlined style={{ color: '#94a3b8', cursor: 'help', fontSize: 13 }} />
+          </Tooltip>
+        </span>
       ),
+      key: 'acciones',
+      width: 240,
+      render: (_, record) => {
+        // Los alumnos inician sesión con SuperaBusca (auth externa): su contraseña
+        // no se gestiona en nuestra DB, así que no se puede cambiar desde aquí.
+        const rol = (record.rol || '').toUpperCase();
+        const esAlumno = rol === 'ALUMNO' || rol === 'ESTUDIANTE';
+
+        const lineaRaw = (record.company_organization || '').trim();
+        const linea = lineaRaw
+          ? lineaRaw.charAt(0).toUpperCase() + lineaRaw.slice(1).toLowerCase()
+          : 'Sin línea';
+
+        // La contraseña se gestiona en OpoRadar para profes/admin y para cualquier
+        // usuario creado en la plataforma. Solo los alumnos que vienen de la
+        // plataforma externa (pertenece_app=false) se autentican allí.
+        const gestionaPasswordAqui = !esAlumno || !!record.pertenece_app;
+
+        const passwordControl = gestionaPasswordAqui ? (
+          <Tooltip title="Cambiar la contraseña de este usuario">
+            <Button
+              type="text"
+              icon={<KeyOutlined />}
+              size="small"
+              className="edit-btn"
+              onClick={() => { setPwdTarget(record); pwdForm.resetFields(); }}
+            >
+              Contraseña
+            </Button>
+          </Tooltip>
+        ) : (
+          <Tooltip title="La contraseña de los alumnos se gestiona en su plataforma de acceso externa, no en OpoRadar.">
+            <span
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '3px 11px', borderRadius: 999,
+                background: 'rgba(148,163,184,0.14)',
+                border: '1px solid rgba(148,163,184,0.22)',
+                color: '#94a3b8', fontSize: 12, fontWeight: 500,
+                cursor: 'default', whiteSpace: 'nowrap',
+              }}
+            >
+              <LockOutlined style={{ fontSize: 11 }} /> {linea}
+            </span>
+          </Tooltip>
+        );
+
+        return (
+          <Space size={8} align="center">
+            {passwordControl}
+            {/* Editar y eliminar: solo para los usuarios creados en OpoRadar */}
+            {record.pertenece_app && (
+              <>
+                <Tooltip title="Editar usuario">
+                  <Button
+                    type="text"
+                    size="small"
+                    shape="circle"
+                    className="edit-btn"
+                    icon={<EditOutlined />}
+                    onClick={() => abrirEdicion(record)}
+                  />
+                </Tooltip>
+                <Popconfirm
+                  title="Eliminar usuario"
+                  description={`¿Eliminar a "${record.nombre}"? No se puede deshacer.`}
+                  okText="Eliminar"
+                  cancelText="Cancelar"
+                  okButtonProps={{ danger: true }}
+                  onConfirm={() => handleEliminar(record)}
+                >
+                  <Tooltip title="Eliminar usuario (creado en OpoRadar)">
+                    <Button type="text" danger size="small" shape="circle" icon={<DeleteOutlined />} />
+                  </Tooltip>
+                </Popconfirm>
+              </>
+            )}
+          </Space>
+        );
+      },
     },
   ];
 
@@ -324,7 +489,7 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion, sea
             allowClear
             className="filter-select-sm"
           >
-            <Option value="ESTUDIANTE">Estudiante</Option>
+            <Option value="ALUMNO">Alumno</Option>
             <Option value="PROFESOR">Profesor</Option>
             <Option value="ADMINISTRADOR">Administrador</Option>
           </Select>
@@ -400,6 +565,13 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion, sea
               <Input placeholder="correo@ejemplo.com" />
             </Form.Item>
             <Form.Item
+              name="dni"
+              label="DNI"
+              rules={[{ required: true, message: 'El DNI es obligatorio' }]}
+            >
+              <Input placeholder="Número de DNI" maxLength={50} />
+            </Form.Item>
+            <Form.Item
               name="password"
               label="Contraseña"
               rules={[
@@ -437,6 +609,21 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion, sea
                 />
               </Form.Item>
             )}
+            {rolSeleccionado !== 'PROFESOR' && (
+              <Form.Item
+                name="company_organization"
+                label="Línea"
+                rules={[{ required: true, message: 'Elige la línea del alumno' }]}
+              >
+                <Select
+                  placeholder="¿Supera o Patrio?"
+                  options={[
+                    { value: 'supera', label: 'Supera' },
+                    { value: 'patrio', label: 'Patrio' },
+                  ]}
+                />
+              </Form.Item>
+            )}
           </Form>
         </Modal>
 
@@ -462,6 +649,60 @@ const AdminUsuarios: React.FC<AdminUsuariosProps> = ({ onGestionarOposicion, sea
               ]}
             >
               <Input.Password placeholder="Mínimo 8 caracteres" autoComplete="new-password" />
+            </Form.Item>
+          </Form>
+        </Modal>
+
+        {/* Editar usuario (solo los creados en OpoRadar) */}
+        <Modal
+          title={editTarget ? `Editar usuario — ${editTarget.nombre}` : 'Editar usuario'}
+          open={!!editTarget}
+          onCancel={() => setEditTarget(null)}
+          onOk={() => editForm.submit()}
+          okText="Guardar"
+          cancelText="Cancelar"
+          confirmLoading={saving}
+          width={520}
+          destroyOnClose
+        >
+          <Form form={editForm} layout="vertical" onFinish={handleEditar} style={{ marginTop: 8 }}>
+            {editTarget && (
+              <div style={{ marginBottom: 12 }}>
+                <Tag color={ROL_COLOR[editTarget.rol] || 'default'}>{editTarget.rol}</Tag>
+                <span style={{ color: '#94a3b8', fontSize: 12, marginLeft: 8 }}>
+                  El rol no se puede cambiar desde aquí
+                </span>
+              </div>
+            )}
+            <Form.Item name="nombre" label="Nombre" rules={[{ required: true, message: 'El nombre es obligatorio' }]}>
+              <Input placeholder="Nombre completo" maxLength={150} />
+            </Form.Item>
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[
+                { required: true, message: 'El email es obligatorio' },
+                { type: 'email', message: 'Email no válido' },
+              ]}
+            >
+              <Input placeholder="correo@ejemplo.com" />
+            </Form.Item>
+            <Form.Item name="dni" label="DNI" rules={[{ required: true, message: 'El DNI es obligatorio' }]}>
+              <Input placeholder="Número de DNI" maxLength={50} />
+            </Form.Item>
+            <Form.Item
+              name="linea"
+              label={(editTarget?.rol || '').toUpperCase() === 'PROFESOR' ? 'Especialidad (línea)' : 'Línea'}
+              rules={[{ required: true, message: 'Elige la línea' }]}
+            >
+              <Select
+                placeholder="¿Supera o Patrio?"
+                options={
+                  (editTarget?.rol || '').toUpperCase() === 'PROFESOR'
+                    ? [{ value: 'Supera', label: 'Supera' }, { value: 'Patrio', label: 'Patrio' }]
+                    : [{ value: 'supera', label: 'Supera' }, { value: 'patrio', label: 'Patrio' }]
+                }
+              />
             </Form.Item>
           </Form>
         </Modal>
