@@ -235,15 +235,17 @@ export const oposicionesService = {
     }
   },
 
-  // Envía un correo (asunto + mensaje) solo a los alumnos apuntados a esa oposición.
+  // Envía un correo (asunto + mensaje + links opcionales, como botones) solo a los
+  // alumnos apuntados a esa oposición.
   async enviarCorreoOposicion(
     oposicionId: number,
     asunto: string,
-    mensaje: string
+    mensaje: string,
+    links?: { label: string; url: string }[]
   ): Promise<{ success: boolean; message: string; enviados?: number }> {
     const response = await api.post<{ success: boolean; message: string; enviados?: number }>(
       '/enviar-correo-oposicion',
-      { oposicion_id: oposicionId, asunto, mensaje }
+      { oposicion_id: oposicionId, asunto, mensaje, links: links || [] }
     );
     return response.data;
   }

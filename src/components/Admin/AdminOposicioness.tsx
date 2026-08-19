@@ -426,14 +426,18 @@ const AdminOposiciones: React.FC = () => {
     correoForm.resetFields();
   };
 
-  const handleEnviarCorreo = async (values: { asunto: string; mensaje: string }) => {
+  const handleEnviarCorreo = async (values: { asunto: string; mensaje: string; links?: { label?: string; url?: string }[] }) => {
     if (!correoTarget) return;
     setEnviandoCorreo(true);
     try {
+      const links = (values.links || [])
+        .filter((l) => l && l.url && l.url.trim())
+        .map((l) => ({ label: (l.label || '').trim() || 'Abrir documento', url: l.url!.trim() }));
       const res = await oposicionesService.enviarCorreoOposicion(
         correoTarget.id,
         values.asunto.trim(),
-        values.mensaje.trim()
+        values.mensaje.trim(),
+        links
       );
       if (res?.success) {
         notify.success(res.message || 'Correo enviado');
@@ -1570,11 +1574,40 @@ const AdminOposiciones: React.FC = () => {
                     </div>
                     <Form form={correoForm} layout="vertical" onFinish={handleEnviarCorreo}>
                       <Form.Item name="asunto" label="Asunto" rules={[{ required: true, message: 'Ingresa el asunto' }]}>
-                        <Input placeholder="Asunto del correo" maxLength={200} style={{ background: '#fff', color: '#1a2332' }} />
+                        <Input placeholder="Asunto del correo" maxLength={200} style={{ background: '#fff', color: '#1a2332', borderRadius: 10 }} />
                       </Form.Item>
                       <Form.Item name="mensaje" label="Mensaje" rules={[{ required: true, message: 'Ingresa el mensaje' }]}>
-                        <Input.TextArea rows={6} placeholder="Escribe el mensaje..." style={{ background: '#fff', color: '#1a2332' }} />
+                        <Input.TextArea rows={6} placeholder="Escribe el mensaje..." style={{ background: '#fff', color: '#1a2332', borderRadius: 14 }} />
                       </Form.Item>
+
+                      <Form.List name="links">
+                        {(fields, { add, remove }) => (
+                          <div style={{ marginBottom: 14 }}>
+                            <div style={{ fontSize: 13, color: '#475569', marginBottom: 8, fontWeight: 600 }}>
+                              Documentos o enlaces (opcional) — se muestran como botones en el correo
+                            </div>
+                            {fields.map((field) => (
+                              <div key={field.key} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'flex-start' }}>
+                                <Form.Item name={[field.name, 'label']} style={{ marginBottom: 0, width: 170 }}>
+                                  <Input placeholder="Etiqueta (ej: Bases)" style={{ background: '#fff', color: '#1a2332', borderRadius: 10 }} />
+                                </Form.Item>
+                                <Form.Item
+                                  name={[field.name, 'url']}
+                                  style={{ marginBottom: 0, flex: 1 }}
+                                  rules={[{ type: 'url', message: 'URL no válida' }]}
+                                >
+                                  <Input placeholder="https://..." style={{ background: '#fff', color: '#1a2332', borderRadius: 10 }} />
+                                </Form.Item>
+                                <Button type="text" danger icon={<DeleteOutlined />} onClick={() => remove(field.name)} />
+                              </div>
+                            ))}
+                            <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />} style={{ borderRadius: 10 }}>
+                              Agregar documento / enlace
+                            </Button>
+                          </div>
+                        )}
+                      </Form.List>
+
                       <Form.Item style={{ marginBottom: 0 }}>
                         <Space style={{ float: 'right' }}>
                           <Button onClick={() => setCorreoTarget(null)}>Cancelar</Button>
