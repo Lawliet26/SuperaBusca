@@ -21,6 +21,7 @@ import {
   Upload,
   Radio,
   Tabs,
+  Checkbox,
   ConfigProvider,
   theme
 } from 'antd';
@@ -43,6 +44,7 @@ import {
   WarningOutlined,
   SwapOutlined,
   UserOutlined,
+  MailOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import type { InputRef } from 'antd';
@@ -143,6 +145,11 @@ const AdminOposiciones: React.FC = () => {
   const [uploadingRecurso, setUploadingRecurso] = useState(false);
   const [recursoType, setRecursoType] = useState<'file' | 'url' | 'relacion'>('file');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  // Enviar correo a los apuntados de una oposición
+  const [correoTarget, setCorreoTarget] = useState<OposicionAdmin | null>(null);
+  const [correoForm] = Form.useForm();
+  const [enviandoCorreo, setEnviandoCorreo] = useState(false);
 
   // Ver recursos modal
   const [recursoViewModal, setRecursoViewModal] = useState(false);
@@ -414,6 +421,34 @@ const AdminOposiciones: React.FC = () => {
     recursoForm.resetFields();
   };
 
+  const openCorreoModal = (record: OposicionAdmin) => {
+    setCorreoTarget(record);
+    correoForm.resetFields();
+  };
+
+  const handleEnviarCorreo = async (values: { asunto: string; mensaje: string }) => {
+    if (!correoTarget) return;
+    setEnviandoCorreo(true);
+    try {
+      const res = await oposicionesService.enviarCorreoOposicion(
+        correoTarget.id,
+        values.asunto.trim(),
+        values.mensaje.trim()
+      );
+      if (res?.success) {
+        notify.success(res.message || 'Correo enviado');
+        setCorreoTarget(null);
+        correoForm.resetFields();
+      } else {
+        notify.warning(res?.message || 'No se pudo enviar el correo');
+      }
+    } catch (err: any) {
+      notify.error(err?.response?.data?.message || 'No se pudo enviar el correo');
+    } finally {
+      setEnviandoCorreo(false);
+    }
+  };
+
   const handleAddRecurso = async (values: any) => {
     if (!selectedOposicionId) return;
 
@@ -437,6 +472,8 @@ const AdminOposiciones: React.FC = () => {
         const formData = new FormData();
         formData.append('oposicion_id', selectedOposicionId.toString());
         formData.append('titulo', values.titulo);
+        // Aviso opcional por correo a los alumnos apuntados a esta oposición.
+        formData.append('notificar', values.notificar ? 'true' : 'false');
 
         if (recursoType === 'file') {
           if (fileList.length === 0) {
@@ -1080,7 +1117,7 @@ const AdminOposiciones: React.FC = () => {
     {
       title: 'Acciones',
       key: 'actions',
-      width: 210,
+      width: 250,
       render: (_, record) => {
         if (editingKey === record.id) {
           return (
@@ -1142,6 +1179,16 @@ const AdminOposiciones: React.FC = () => {
                 type="text"
                 icon={<SolutionOutlined />}
                 onClick={() => openSolicitantes(record)}
+                disabled={editingKey !== null}
+                className="edit-btn"
+              />
+            </Tooltip>
+
+            <Tooltip title="Enviar un correo a los alumnos apuntados a esta oposición">
+              <Button
+                type="text"
+                icon={<MailOutlined />}
+                onClick={() => openCorreoModal(record)}
                 disabled={editingKey !== null}
                 className="edit-btn"
               />
@@ -1482,6 +1529,12 @@ const AdminOposiciones: React.FC = () => {
                         </Form.Item>
                       )}
 
+                      {recursoType !== 'relacion' && (
+                        <Form.Item name="notificar" valuePropName="checked" initialValue={false} style={{ marginBottom: 12 }}>
+                          <Checkbox>Notificar por correo a los alumnos apuntados a esta oposición</Checkbox>
+                        </Form.Item>
+                      )}
+
                       <Form.Item>
                         <Space style={{ float: 'right' }}>
                           <Button onClick={() => {
@@ -1494,6 +1547,39 @@ const AdminOposiciones: React.FC = () => {
                           </Button>
                           <Button type="primary" htmlType="submit" loading={uploadingRecurso}>
                             {recursoType === 'relacion' ? 'Cargar la relación de temario' : 'Agregar Recurso'}
+                          </Button>
+                        </Space>
+                      </Form.Item>
+                    </Form>
+                  </ConfigProvider>
+                </Modal>
+
+                {/* Modal para enviar correo a los apuntados de una oposición */}
+                <Modal
+                  title={correoTarget ? `Enviar correo — ${correoTarget.titulo}` : 'Enviar correo'}
+                  open={!!correoTarget}
+                  onCancel={() => setCorreoTarget(null)}
+                  footer={null}
+                  width={560}
+                  className="admin-modal"
+                  destroyOnClose
+                >
+                  <ConfigProvider theme={{ algorithm: theme.defaultAlgorithm }}>
+                    <div style={{ marginBottom: 12, color: '#64748b', fontSize: 13 }}>
+                      Se enviará solo a los alumnos apuntados a esta oposición (los que la tienen en "Mis Convocatorias").
+                    </div>
+                    <Form form={correoForm} layout="vertical" onFinish={handleEnviarCorreo}>
+                      <Form.Item name="asunto" label="Asunto" rules={[{ required: true, message: 'Ingresa el asunto' }]}>
+                        <Input placeholder="Asunto del correo" maxLength={200} style={{ background: '#fff', color: '#1a2332' }} />
+                      </Form.Item>
+                      <Form.Item name="mensaje" label="Mensaje" rules={[{ required: true, message: 'Ingresa el mensaje' }]}>
+                        <Input.TextArea rows={6} placeholder="Escribe el mensaje..." style={{ background: '#fff', color: '#1a2332' }} />
+                      </Form.Item>
+                      <Form.Item style={{ marginBottom: 0 }}>
+                        <Space style={{ float: 'right' }}>
+                          <Button onClick={() => setCorreoTarget(null)}>Cancelar</Button>
+                          <Button type="primary" htmlType="submit" icon={<MailOutlined />} loading={enviandoCorreo}>
+                            Enviar
                           </Button>
                         </Space>
                       </Form.Item>

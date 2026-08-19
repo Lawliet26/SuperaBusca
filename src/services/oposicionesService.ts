@@ -233,5 +233,18 @@ export const oposicionesService = {
       console.error('Error obteniendo solicitantes:', error);
       throw error;
     }
+  },
+
+  // Envía un correo (asunto + mensaje) solo a los alumnos apuntados a esa oposición.
+  async enviarCorreoOposicion(
+    oposicionId: number,
+    asunto: string,
+    mensaje: string
+  ): Promise<{ success: boolean; message: string; enviados?: number }> {
+    const response = await api.post<{ success: boolean; message: string; enviados?: number }>(
+      '/enviar-correo-oposicion',
+      { oposicion_id: oposicionId, asunto, mensaje }
+    );
+    return response.data;
   }
 };
