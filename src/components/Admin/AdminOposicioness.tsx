@@ -61,6 +61,8 @@ import { useAuth } from '@/context/AuthContext';
 import AdminUsuarios from './AdminUsuarios';
 import AdminHistorico from './AdminHistorico';
 import AdminActividades from './AdminActividades';
+import AdminPublicacionFichas from './AdminPublicacionFichas';
+import AdminBandejaBoletines from './AdminBandejaBoletines';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -75,7 +77,7 @@ const AdminOposiciones: React.FC = () => {
   const ADMIN_TAB_KEY = 'oporadar_admin_tab';
   const [activeTab, setActiveTab] = useState<string>(() => {
     const saved = localStorage.getItem(ADMIN_TAB_KEY);
-    return saved === 'usuarios' || saved === 'historico' || saved === 'actividades' || saved === 'oposiciones'
+    return saved === 'usuarios' || saved === 'historico' || saved === 'actividades' || saved === 'publicacion' || saved === 'bandeja' || saved === 'oposiciones'
       ? saved
       : 'oposiciones';
   });
@@ -2143,6 +2145,20 @@ const AdminOposiciones: React.FC = () => {
                   label: 'Actividades',
                   children: <AdminActividades />,
                 },
+                ...(isAdmin
+                  ? [
+                      {
+                        key: 'bandeja',
+                        label: 'Bandeja de boletines',
+                        children: <AdminBandejaBoletines />,
+                      },
+                      {
+                        key: 'publicacion',
+                        label: 'Publicar fichas',
+                        children: <AdminPublicacionFichas />,
+                      },
+                    ]
+                  : []),
               ]
             : []),
         ]}
