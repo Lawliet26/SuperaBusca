@@ -151,7 +151,14 @@ const AdminBandejaBoletines: React.FC = () => {
     const plazo = s && (s.plazo_inicio || s.plazo_fin)
       ? `Plazo según IA: ${s.plazo_inicio ? dayjs(s.plazo_inicio).format('DD/MM/YYYY') : '?'} – ${s.plazo_fin ? dayjs(s.plazo_fin).format('DD/MM/YYYY') : '?'}`
       : '';
+    const c = s ? h.complemento_ia : null;
+    const enlaceConfirmado = h.verificacion_ia?.campos?.fuente_oficial === 'ok' ? h.enlaces_ia?.[0] : undefined;
     form.setFieldsValue({
+      sistema_selectivo: c?.campos.sistema_selectivo?.valor ?? s?.sistema ?? '',
+      turno: c?.campos.turno?.valor ?? '',
+      plazo_solicitud: c?.campos.plazo_solicitud?.valor ?? '',
+      bases_url: c?.fuente ?? enlaceConfirmado ?? '',
+      portal_url: h.portales_conocidos?.[0] ?? '',
       tipo_registro: s?.tipo_registro === 'oferta' || s?.tipo_registro === 'convocatoria' ? s.tipo_registro : undefined,
       organismo: s?.organismo ?? '',
       cuerpo_categoria: s?.cuerpo_categoria ?? undefined,
@@ -159,7 +166,7 @@ const AdminBandejaBoletines: React.FC = () => {
       municipio: s?.municipio ?? undefined,
       ccaa: s?.ccaa ?? h.ccaa ?? undefined,
       convocante: '',
-      acceso: s?.acceso ?? undefined,
+      acceso: c?.campos.acceso?.valor ?? s?.acceso ?? undefined,
       estado: 'por verificar',
       plazas_num: s?.plazas_num ?? undefined,
       nota: [s?.resumen, plazo].filter(Boolean).join(' · ').slice(0, 500),
@@ -184,6 +191,11 @@ const AdminBandejaBoletines: React.FC = () => {
       estado: v.estado,
       plazas_num: v.plazas_num ?? null,
       nota: limpio(v.nota),
+      sistema_selectivo: limpio(v.sistema_selectivo),
+      turno: limpio(v.turno),
+      plazo_solicitud: limpio(v.plazo_solicitud),
+      bases_url: limpio(v.bases_url),
+      portal_url: limpio(v.portal_url),
     };
     setPromoviendo(true);
     try {
@@ -326,6 +338,16 @@ const AdminBandejaBoletines: React.FC = () => {
           {h.sugerencia_ia?.es_relevante && h.verificacion_ia?.estado === 'revisar' && (
             <Tooltip title={h.verificacion_ia.motivos.map(textoMotivoIA).join(' · ')}>
               <Tag color="orange">Revisar datos de la IA</Tag>
+            </Tooltip>
+          )}
+          {!!h.posibles_fichas?.length && !h.conocido_en.length && (
+            <Tooltip title={h.posibles_fichas.map((f) => `${f.id}: ${f.organismo ?? ''} · ${f.cuerpo_categoria ?? ''}`).join(' | ')}>
+              <Tag color="blue">Posible ficha existente</Tag>
+            </Tooltip>
+          )}
+          {!!h.posibles_duplicados?.length && (
+            <Tooltip title={h.posibles_duplicados.map((d) => `${d.source_id} ${d.publication_id}`).join(' | ')}>
+              <Tag color="gold">Posible duplicado</Tag>
             </Tooltip>
           )}
           {h.datos_personales && <Tag color="red" icon={<WarningOutlined />}>Datos personales</Tag>}
@@ -579,6 +601,54 @@ const AdminBandejaBoletines: React.FC = () => {
                   description="Abre el documento y completa los datos tal como figuran en él. La ficha se crea en «Hallazgos» y después se publica desde «Publicar fichas»."
                 />
               )}
+              {!!p.posibles_fichas?.length && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                  title="Puede que este proceso ya tenga ficha: revísalo antes de crear otra"
+                  description={p.posibles_fichas.map((f) => (
+                    <div key={`${f.tabla}|${f.id}`} style={{ marginTop: 4 }}>
+                      <strong>{f.id}</strong> · {[f.organismo, f.cuerpo_categoria, f.tipo_registro, f.plazas_num ? `${f.plazas_num} plazas` : null, f.estado].filter(Boolean).join(' · ')}{' '}
+                      <Button
+                        size="small"
+                        type="link"
+                        onClick={() => { const h = p; cerrarPromover(); abrirVincular(h); setFichaBusqueda(f.id); }}
+                      >
+                        Vincular a esta ficha
+                      </Button>
+                    </div>
+                  ))}
+                />
+              )}
+              {!!p.posibles_duplicados?.length && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                  title="El mismo organismo y categoría aparece en otros avisos de la bandeja"
+                  description={p.posibles_duplicados.map((d) => (
+                    <div key={d.id}>
+                      <a href={d.url} target="_blank" rel="noopener noreferrer"><LinkOutlined /> {d.source_id} {d.publication_id}</a>
+                      {' '}· {dayjs(d.fecha_publicacion).format('DD/MM/YYYY')} · {ESTADO_INFO[d.estado_revision]?.label ?? d.estado_revision}
+                    </div>
+                  ))}
+                />
+              )}
+              {!!p.complemento_ia && Object.keys(p.complemento_ia.campos).length > 0 && (
+                <Alert
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                  title="Datos sacados de las bases, con su página"
+                  description={Object.entries(p.complemento_ia.campos).map(([k, v]) => (
+                    <div key={k}>
+                      <strong>{k.replace('_', ' ')}:</strong> {v?.valor}{' '}
+                      <a href={`${p.complemento_ia!.fuente}#page=${v?.pagina}`} target="_blank" rel="noopener noreferrer">(pág. {v?.pagina})</a>
+                    </div>
+                  ))}
+                />
+              )}
               {p.datos_personales && (
                 <Alert
                   type="warning"
@@ -647,6 +717,35 @@ const AdminBandejaBoletines: React.FC = () => {
                   <Col xs={24} sm={8}>
                     <Form.Item name="acceso" label="Acceso">
                       <AutoComplete options={ACCESOS_SUGERIDOS.map((a) => ({ value: a }))} placeholder="Opcional" filterOption={filtrarOpcion} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col xs={24} sm={8}>
+                    <Form.Item name="sistema_selectivo" label="Sistema selectivo" rules={[{ max: 500 }]}>
+                      <Input placeholder="Opcional" />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={8}>
+                    <Form.Item name="turno" label="Turno" rules={[{ max: 500 }]}>
+                      <Input placeholder="Opcional" />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={8}>
+                    <Form.Item name="plazo_solicitud" label="Plazo de solicitud" rules={[{ max: 500 }]}>
+                      <Input placeholder="Opcional" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <Row gutter={16}>
+                  <Col xs={24} sm={12}>
+                    <Form.Item name="bases_url" label="Enlace a las bases" rules={[{ pattern: /^https:\/\/\S+$/, message: 'Debe ser un enlace https' }, { max: 500 }]}>
+                      <Input placeholder="https://…" />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={12}>
+                    <Form.Item name="portal_url" label="Portal oficial" rules={[{ pattern: /^https:\/\/\S+$/, message: 'Debe ser un enlace https' }, { max: 500 }]}>
+                      <Input placeholder="https://…" />
                     </Form.Item>
                   </Col>
                 </Row>

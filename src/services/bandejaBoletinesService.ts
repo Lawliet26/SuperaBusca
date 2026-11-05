@@ -51,7 +51,40 @@ export interface HallazgoBandeja {
   verificacion_ia?: VerificacionIA | null;
   /** Enlaces oficiales impresos en el anuncio: pistas, sin comprobar. */
   enlaces_ia?: string[] | null;
+  /** Columnas sacadas de las bases oficiales, cada una con su página. */
+  complemento_ia?: ComplementoIA | null;
+  /** Fichas del mismo organismo y categoría: aviso, la persona decide. */
+  posibles_fichas?: PosibleFicha[];
+  /** Otros avisos del mismo organismo y categoría en la bandeja. */
+  posibles_duplicados?: PosibleDuplicado[];
+  /** Portales que ya figuran en fichas de este organismo. */
+  portales_conocidos?: string[];
   total_count?: string;
+}
+
+export interface ComplementoIA {
+  fuente: string;
+  campos: Partial<Record<'sistema_selectivo' | 'turno' | 'plazo_solicitud' | 'acceso' | 'titulacion', { valor: string; pagina: number }>>;
+}
+
+export interface PosibleFicha {
+  tabla: OrigenTabla;
+  id: string;
+  organismo: string | null;
+  cuerpo_categoria: string | null;
+  provincia: string | null;
+  estado: string | null;
+  tipo_registro: string | null;
+  plazas_num: number | null;
+}
+
+export interface PosibleDuplicado {
+  id: number;
+  source_id: string;
+  publication_id: string;
+  url: string;
+  fecha_publicacion: string;
+  estado_revision: EstadoRevision;
 }
 
 export interface VerificacionIA {
@@ -117,6 +150,11 @@ export interface PromoverPayload {
   estado?: string | null;
   plazas_num?: number | null;
   nota?: string | null;
+  sistema_selectivo?: string | null;
+  turno?: string | null;
+  plazo_solicitud?: string | null;
+  bases_url?: string | null;
+  portal_url?: string | null;
 }
 
 // Postgres/n8n puede devolver jsonb y arrays como string; los normalizamos.
@@ -147,6 +185,14 @@ const normalizeHallazgo = (h: HallazgoBandeja): HallazgoBandeja => ({
   id: Number(h.id),
   paginas_categoria: parseIntArray(h.paginas_categoria),
   conocido_en: parseJson<FichaConocida[]>(h.conocido_en, []),
+  paginas_ia: parseIntArray(h.paginas_ia),
+  sugerencia_ia: parseJson<SugerenciaIA | null>(h.sugerencia_ia, null),
+  verificacion_ia: parseJson<VerificacionIA | null>(h.verificacion_ia, null),
+  enlaces_ia: parseJson<string[]>(h.enlaces_ia, []),
+  complemento_ia: parseJson<ComplementoIA | null>(h.complemento_ia, null),
+  posibles_fichas: parseJson<PosibleFicha[]>(h.posibles_fichas, []),
+  posibles_duplicados: parseJson<PosibleDuplicado[]>(h.posibles_duplicados, []),
+  portales_conocidos: parseJson<string[]>(h.portales_conocidos, []),
 });
 
 export const bandejaBoletinesService = {
