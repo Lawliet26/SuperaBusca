@@ -42,7 +42,32 @@ export interface HallazgoBandeja {
   ultima_vez: string;
   veces_visto: number;
   conocido_en: FichaConocida[];
+  /** Páginas que el scraper eligió para la IA (solo esas se le mandan). */
+  paginas_ia?: number[] | null;
+  /** Borrador de la IA: una persona lo verifica antes de promover. */
+  sugerencia_ia?: SugerenciaIA | null;
+  sugerencia_ia_en?: string | null;
   total_count?: string;
+}
+
+export interface SugerenciaIA {
+  es_relevante: boolean;
+  tipo_registro?: 'oferta' | 'convocatoria' | 'otro';
+  organismo?: string;
+  cuerpo_categoria?: string;
+  provincia?: string;
+  municipio?: string;
+  ccaa?: string;
+  acceso?: string;
+  plazas_num?: number;
+  plazo_inicio?: string;
+  plazo_fin?: string;
+  grupo?: string;
+  sistema?: string;
+  resumen?: string;
+  pagina_evidencia?: number;
+  confianza?: number;
+  modelo?: string;
 }
 
 export interface BoletinFuente {

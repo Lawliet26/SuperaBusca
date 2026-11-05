@@ -133,19 +133,23 @@ const AdminBandejaBoletines: React.FC = () => {
 
   const abrirPromover = (h: HallazgoBandeja) => {
     setAPromover(h);
-    // Lo único que el boletín ya dice: su territorio. El resto lo escribe la persona.
+    // Territorio del boletín + borrador de la IA si lo hay. La persona verifica y corrige.
+    const s = h.sugerencia_ia?.es_relevante ? h.sugerencia_ia : null;
+    const plazo = s && (s.plazo_inicio || s.plazo_fin)
+      ? `Plazo según IA: ${s.plazo_inicio ? dayjs(s.plazo_inicio).format('DD/MM/YYYY') : '?'} – ${s.plazo_fin ? dayjs(s.plazo_fin).format('DD/MM/YYYY') : '?'}`
+      : '';
     form.setFieldsValue({
-      tipo_registro: undefined,
-      organismo: '',
-      cuerpo_categoria: undefined,
-      provincia: h.provincia ?? undefined,
-      municipio: undefined,
-      ccaa: h.ccaa ?? undefined,
+      tipo_registro: s?.tipo_registro === 'oferta' || s?.tipo_registro === 'convocatoria' ? s.tipo_registro : undefined,
+      organismo: s?.organismo ?? '',
+      cuerpo_categoria: s?.cuerpo_categoria ?? undefined,
+      provincia: s?.provincia ?? h.provincia ?? undefined,
+      municipio: s?.municipio ?? undefined,
+      ccaa: s?.ccaa ?? h.ccaa ?? undefined,
       convocante: '',
-      acceso: undefined,
+      acceso: s?.acceso ?? undefined,
       estado: 'por verificar',
-      plazas_num: undefined,
-      nota: '',
+      plazas_num: s?.plazas_num ?? undefined,
+      nota: [s?.resumen, plazo].filter(Boolean).join(' · ').slice(0, 500),
     });
   };
 
@@ -287,6 +291,18 @@ const AdminBandejaBoletines: React.FC = () => {
           {h.menciona_categoria && (
             <Tooltip title={`Páginas: ${(h.paginas_categoria ?? []).join(', ')}`}>
               <Tag color="green">Menciona la categoría</Tag>
+            </Tooltip>
+          )}
+          {h.sugerencia_ia && (
+            <Tooltip
+              title={h.sugerencia_ia.es_relevante
+                ? [h.sugerencia_ia.organismo, h.sugerencia_ia.cuerpo_categoria, h.sugerencia_ia.plazas_num ? `${h.sugerencia_ia.plazas_num} plazas` : null, h.sugerencia_ia.resumen]
+                    .filter(Boolean).join(' · ')
+                : 'La IA no ve aquí una oferta ni una convocatoria'}
+            >
+              <Tag color={h.sugerencia_ia.es_relevante ? 'purple' : 'default'}>
+                {h.sugerencia_ia.es_relevante ? `IA: ${h.sugerencia_ia.tipo_registro ?? 'relevante'}` : 'IA: no relevante'}
+              </Tag>
             </Tooltip>
           )}
           {h.datos_personales && <Tag color="red" icon={<WarningOutlined />}>Datos personales</Tag>}
@@ -503,13 +519,30 @@ const AdminBandejaBoletines: React.FC = () => {
         >
           {p && (
             <>
-              <Alert
-                type="info"
-                showIcon
-                style={{ marginBottom: 16 }}
-                title="El scraper solo trae el enlace y la fecha"
-                description="Abre el documento y completa los datos tal como figuran en él. La ficha se crea en «Hallazgos» y después se publica desde «Publicar fichas»."
-              />
+              {p.sugerencia_ia?.es_relevante ? (
+                <Alert
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                  title={`Datos precompletados por IA${p.sugerencia_ia.modelo ? ` (${p.sugerencia_ia.modelo})` : ''}: verifícalos contra el documento`}
+                  description={
+                    <>
+                      La IA leyó solo las páginas {(p.paginas_ia ?? []).join(', ')} y puede equivocarse.
+                      {p.sugerencia_ia.pagina_evidencia ? <> Dato principal en la{' '}
+                        <a href={`${p.url}#page=${p.sugerencia_ia.pagina_evidencia}`} target="_blank" rel="noopener noreferrer">página {p.sugerencia_ia.pagina_evidencia}</a>.</> : null}
+                      {' '}La ficha se crea en «Hallazgos» y después se publica desde «Publicar fichas».
+                    </>
+                  }
+                />
+              ) : (
+                <Alert
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                  title="El scraper solo trae el enlace y la fecha"
+                  description="Abre el documento y completa los datos tal como figuran en él. La ficha se crea en «Hallazgos» y después se publica desde «Publicar fichas»."
+                />
+              )}
               {p.datos_personales && (
                 <Alert
                   type="warning"
