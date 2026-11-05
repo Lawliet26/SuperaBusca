@@ -43,6 +43,19 @@ const ESTADOS_FICHA = ['por verificar', 'abierta', 'en curso', 'cerrada', 'pendi
 const CATEGORIAS_SUGERIDAS = ['Auxiliar Administrativo', 'Administrativo'];
 const ACCESOS_SUGERIDOS = ['Libre', 'Promoción interna', 'Estabilización', 'Discapacidad'];
 
+const MOTIVOS_IA: Record<string, string> = {
+  organismo: 'organismo',
+  cuerpo_categoria: 'categoría',
+  provincia: 'provincia',
+  plazas_num: 'número de plazas',
+  plazo_inicio: 'inicio del plazo',
+  plazo_fin: 'fin del plazo',
+  tipo_registro: 'si es oferta o convocatoria',
+  categoria_fuera_de_ambito: 'la categoría no parece de administrativos',
+  correccion_de_otra_publicacion: 'parece una corrección de una publicación anterior',
+};
+const textoMotivoIA = (m: string) => MOTIVOS_IA[m] ?? m;
+
 const errorMessage = (err: unknown, fallback: string) =>
   (err as { response?: { data?: { message?: string } } })?.response?.data?.message || fallback;
 
@@ -305,6 +318,16 @@ const AdminBandejaBoletines: React.FC = () => {
               </Tag>
             </Tooltip>
           )}
+          {h.sugerencia_ia?.es_relevante && h.verificacion_ia?.estado === 'verificado' && (
+            <Tooltip title="Cada dato de la IA aparece en las páginas leídas. Igual hay que confirmarlo.">
+              <Tag color="green">Datos encontrados en el PDF</Tag>
+            </Tooltip>
+          )}
+          {h.sugerencia_ia?.es_relevante && h.verificacion_ia?.estado === 'revisar' && (
+            <Tooltip title={h.verificacion_ia.motivos.map(textoMotivoIA).join(' · ')}>
+              <Tag color="orange">Revisar datos de la IA</Tag>
+            </Tooltip>
+          )}
           {h.datos_personales && <Tag color="red" icon={<WarningOutlined />}>Datos personales</Tag>}
           {h.paginas ? <Tag>PDF leído · {h.paginas} pág.</Tag> : <Tag color="default">PDF sin leer</Tag>}
           {h.conocido_en.map((f) => (
@@ -531,6 +554,19 @@ const AdminBandejaBoletines: React.FC = () => {
                       {p.sugerencia_ia.pagina_evidencia ? <> Dato principal en la{' '}
                         <a href={`${p.url}#page=${p.sugerencia_ia.pagina_evidencia}`} target="_blank" rel="noopener noreferrer">página {p.sugerencia_ia.pagina_evidencia}</a>.</> : null}
                       {' '}La ficha se crea en «Hallazgos» y después se publica desde «Publicar fichas».
+                      {p.verificacion_ia?.estado === 'revisar' && (
+                        <div style={{ marginTop: 8 }}>
+                          <strong>Comprueba especialmente:</strong> {p.verificacion_ia.motivos.map(textoMotivoIA).join(' · ')}
+                        </div>
+                      )}
+                      {!!p.enlaces_ia?.length && (
+                        <div style={{ marginTop: 8 }}>
+                          <strong>Enlaces citados en el anuncio (sin comprobar):</strong>{' '}
+                          {p.enlaces_ia.map((u) => (
+                            <div key={u}><a href={u} target="_blank" rel="noopener noreferrer"><LinkOutlined /> {u}</a></div>
+                          ))}
+                        </div>
+                      )}
                     </>
                   }
                 />

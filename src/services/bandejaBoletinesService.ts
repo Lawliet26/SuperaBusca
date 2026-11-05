@@ -47,7 +47,17 @@ export interface HallazgoBandeja {
   /** Borrador de la IA: una persona lo verifica antes de promover. */
   sugerencia_ia?: SugerenciaIA | null;
   sugerencia_ia_en?: string | null;
+  /** Comprobación por código de la sugerencia contra el texto del PDF. */
+  verificacion_ia?: VerificacionIA | null;
+  /** Enlaces oficiales impresos en el anuncio: pistas, sin comprobar. */
+  enlaces_ia?: string[] | null;
   total_count?: string;
+}
+
+export interface VerificacionIA {
+  estado: 'verificado' | 'revisar' | 'no_relevante';
+  campos: Record<string, 'ok' | 'no_encontrado'>;
+  motivos: string[];
 }
 
 export interface SugerenciaIA {
