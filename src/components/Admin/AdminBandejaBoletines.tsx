@@ -26,6 +26,13 @@ import './AdminOposiciones.css';
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
+const TURNO_IA: Record<string, string> = {
+  libre: 'turno libre', promocion_interna: 'promoción interna', reserva_discapacidad: 'reserva discapacidad', por_verificar: 'turno por verificar',
+};
+const SISTEMA_IA: Record<string, string> = {
+  oposicion: 'oposición', concurso_oposicion: 'concurso-oposición', concurso_meritos: 'concurso de méritos', por_verificar: 'sistema por verificar',
+};
+
 const ESTADO_INFO: Record<EstadoRevision, { label: string; color: string }> = {
   pendiente: { label: 'Pendiente', color: 'gold' },
   promovido: { label: 'Promovido', color: 'green' },
@@ -633,6 +640,24 @@ const AdminBandejaBoletines: React.FC = () => {
                       {' '}· {dayjs(d.fecha_publicacion).format('DD/MM/YYYY')} · {ESTADO_INFO[d.estado_revision]?.label ?? d.estado_revision}
                     </div>
                   ))}
+                />
+              )}
+              {!!p.candidatos_ia?.length && (
+                <Alert
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                  title={`Unidades detectadas por la IA (${p.candidatos_ia.length})`}
+                  description={p.candidatos_ia.map((c, i) => {
+                    const page = c.facts.find((f) => f.field === 'seats')?.page ?? c.facts.find((f) => f.field === 'category')?.page;
+                    return (
+                      <div key={i}>
+                        <strong>{c.seats ?? '?'} {c.category === 'auxiliar administrativo' ? 'Auxiliar Administrativo' : 'Administrativo'}</strong>
+                        {' · '}{TURNO_IA[c.turn]} · {SISTEMA_IA[c.selection_method]} · {c.record_type.replace('_', ' ')}
+                        {page ? <>{' '}<a href={`${p.url}#page=${page}`} target="_blank" rel="noopener noreferrer">(pág. {page})</a></> : null}
+                      </div>
+                    );
+                  })}
                 />
               )}
               {!!p.complemento_ia && Object.keys(p.complemento_ia.campos).length > 0 && (

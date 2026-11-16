@@ -53,6 +53,8 @@ export interface HallazgoBandeja {
   enlaces_ia?: string[] | null;
   /** Columnas sacadas de las bases oficiales, cada una con su página. */
   complemento_ia?: ComplementoIA | null;
+  /** Unidades del extractor de Nico: una por categoría y turno, con la página de cada dato. */
+  candidatos_ia?: CandidatoIA[] | null;
   /** Fichas del mismo organismo y categoría: aviso, la persona decide. */
   posibles_fichas?: PosibleFicha[];
   /** Otros avisos del mismo organismo y categoría en la bandeja. */
@@ -60,6 +62,16 @@ export interface HallazgoBandeja {
   /** Portales que ya figuran en fichas de este organismo. */
   portales_conocidos?: string[];
   total_count?: string;
+}
+
+export interface CandidatoIA {
+  category: 'administrativo' | 'auxiliar administrativo';
+  turn: 'libre' | 'promocion_interna' | 'reserva_discapacidad' | 'por_verificar';
+  seats: number | null;
+  record_type: 'oferta' | 'convocatoria' | 'actualizacion' | 'por_verificar';
+  selection_method: 'oposicion' | 'concurso_oposicion' | 'concurso_meritos' | 'por_verificar';
+  group: '1' | '2' | '3' | null;
+  facts: { field: string; page: number }[];
 }
 
 export interface ComplementoIA {
@@ -190,6 +202,7 @@ const normalizeHallazgo = (h: HallazgoBandeja): HallazgoBandeja => ({
   verificacion_ia: parseJson<VerificacionIA | null>(h.verificacion_ia, null),
   enlaces_ia: parseJson<string[]>(h.enlaces_ia, []),
   complemento_ia: parseJson<ComplementoIA | null>(h.complemento_ia, null),
+  candidatos_ia: parseJson<CandidatoIA[] | null>(h.candidatos_ia, null),
   posibles_fichas: parseJson<PosibleFicha[]>(h.posibles_fichas, []),
   posibles_duplicados: parseJson<PosibleDuplicado[]>(h.posibles_duplicados, []),
   portales_conocidos: parseJson<string[]>(h.portales_conocidos, []),
